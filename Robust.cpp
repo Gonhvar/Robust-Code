@@ -26,6 +26,8 @@ TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
 
 //================INITIALISATION_PEAK================
+
+//Va chercher le channel disponible automatiquement
 TPCANHandle find_channel(){
     TPCANHandle channelsToCheck[] = { PCAN_USBBUS1, PCAN_USBBUS2, PCAN_USBBUS3, PCAN_USBBUS4, PCAN_USBBUS5, PCAN_USBBUS6
      , PCAN_USBBUS7, PCAN_USBBUS8, PCAN_USBBUS9, PCAN_USBBUS10, PCAN_USBBUS11, PCAN_USBBUS12, PCAN_USBBUS13, PCAN_USBBUS14
@@ -66,6 +68,7 @@ TPCANHandle find_channel(){
     return channelsToCheck[0];
 }
 
+//Va chercher le Baudrate automatiquement 
 TPCANBaudrate init_baudrate_doc(){
 
     TPCANBaudrate baudrates[] = { PCAN_BAUD_1M, PCAN_BAUD_500K, PCAN_BAUD_250K, PCAN_BAUD_125K};
@@ -104,7 +107,7 @@ TPCANBaudrate init_baudrate_doc(){
     return PCAN_BAUD_1M;
 }
 
-//Regarde avec lsusb dans un terminal pour savoir le channel 
+//Initialise la connexion avec le PEAK
 void initialise_CAN_USB(){
     
     char strMsg[256];
@@ -138,6 +141,7 @@ void initialise_CAN_USB(){
 }
 
 //==================MESSAGES==================
+//Initialise un TPCANMsg avec les valeurs données 
 void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, uint8_t index_2, uint8_t subIndex, uint8_t data[4]){
     // A CAN message is configured
     //Note : BYTE DATA[8] 
@@ -186,6 +190,7 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, ui
     }
 }
 
+//Affiche le message donné
 uint32_t print_message(TPCANMsg received){
 
     uint32_t result = -1;
@@ -230,6 +235,7 @@ uint32_t print_message(TPCANMsg received){
     return result;
 }
 
+//Lis dans le peak 
 uint32_t read_message(){
 
     TPCANMsg received;
@@ -258,6 +264,7 @@ uint32_t read_message(){
     return get;
 }
 
+//Ecrit dans l'index spécifié
 void write_message(TPCANMsg msg){
 
     TPCANStatus result;
@@ -281,6 +288,7 @@ void write_message(TPCANMsg msg){
     usleep(600);
 }
 
+//Va chercher et renvoie la valeur de l'index demandé
 uint32_t get_value(TPCANMsg toSend){
     //----------------------------------
     //DATA[0] Toujours égale à 0x40 si on veut read une valeur
@@ -296,6 +304,7 @@ uint32_t get_value(TPCANMsg toSend){
 
 //==================POSITION MODE==================
 
+//Réinitialise la position absolue du moteur (calibration)
 void def_positionAbsolue(int id){
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -340,6 +349,7 @@ void def_positionAbsolue(int id){
     write_message(msg);
 }
 
+//Initialisation du mode Position du moteur
 bool init_asservissementPosition(int id){
 
     TPCANMsg msg;
@@ -374,6 +384,7 @@ bool init_asservissementPosition(int id){
     return false;
 }
 
+//Définie la Position relative en fonction de l'userInput
 void set_relativePosition(int id, uint32_t userInput){
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -417,6 +428,7 @@ void set_relativePosition(int id, uint32_t userInput){
     usleep(1000);
 }
 
+//Fonction demandant à l'utilisateur une position et la mettant
 void set_position(int id){
     uint32_t userInput = 1;
     TPCANMsg msg;
@@ -445,6 +457,7 @@ void set_position(int id){
 
 //==================TORQUE MODE==================
 
+//Initialisation du mode Couple du moteur
 void init_Torque(int id){
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -462,6 +475,7 @@ void init_Torque(int id){
     write_message(msg);
 }
 
+//Fonction demandant à l'utilisateur un Couple et le met
 void set_torque(int id){
 
     uint32_t userInput = 1;
@@ -504,7 +518,7 @@ void set_torque(int id){
 }
 
 //==================MENU==================
-
+//Menu de selection des modes
 void mode_selection(int id){
     int userInput = 8;
     do{
