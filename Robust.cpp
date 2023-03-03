@@ -385,7 +385,7 @@ bool init_asservissementPosition(int id){
 }
 
 //Définie la Position relative en fonction de l'userInput
-void set_relativePosition(int id, uint32_t userInput){
+void set_relativePosition(int id, int userInput){
     TPCANMsg msg;
     uint8_t msg_data[4];
     bzero(msg_data, 4);
@@ -396,19 +396,21 @@ void set_relativePosition(int id, uint32_t userInput){
     init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
     write_message(msg);
 
-    if(userInput>0xFFFF){
+    if(userInput>0xFFFF){ 
         userInput = 0xFFFF;
     }
 
     printf("UserInput : %hhx\n %d\n", userInput, userInput);
     
     //Target position
-    //On limite à 2 Bytes
-    msg_data[0] = (userInput>>8)%8;
-    msg_data[1] = userInput;
+    //On limite à 1 Bytes
+    msg_data[0] = 0;
+    msg_data[1] = 0;
+    msg_data[2] = (userInput>>8)%255;
+    msg_data[3] = userInput;
     
-    printf("UserInput : 0x%hhx-%hhx\n", msg_data[0], msg_data[1]);
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x7A, 0x00, msg_data);
+    //ATTENTION : W_4B EST ESSENTIEL
+    init_msg_SDO(&msg, id, W_4B, 0x60, 0x7A, 0x00, msg_data);
     write_message(msg);
 
     //Controlword (relative position)
