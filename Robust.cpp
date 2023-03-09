@@ -578,7 +578,7 @@ void mode_selection(int id){
         break;
 
         case 1 : 
-        set_position(id);
+        control_allPosition(100);
         break;
 
         case 2 : 
