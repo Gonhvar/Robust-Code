@@ -3,7 +3,7 @@ prog: Robust.o
 	g++ -o prog Robust.o -lpcanbasic 
 	
 	
-Test.o : Robust.cpp Robust.h PCANBasic.h
+Robust.o : Robust.cpp Robust.h PCANBasic.h
 	g++ -c Robust.cpp
 	
 	

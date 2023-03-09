@@ -1,29 +1,23 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <strings.h> 
-#include <PCANBasic.h>
-#include <iostream>
-#include <unistd.h>
-#include <string.h>
+/**
+ * @file Robust.cpp
+ * @author Equipe Robust
+ * @brief 
+ * @version 0.1
+ * @date 2023-03-09
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 
-using namespace std;
-//Definition des COBID
-#define COBID_ALL_CAN_SDO 0x600
-#define COBID_CAN1_SDO 0x601 
-#define COBID_CAN3_SDO 0x603 
+#include "Robust.h"
 
-//-W = write | R = Read | B = Bytes-
-#define W_1B 0x2F
-#define W_2B 0x2B
-#define W_4B 0x23
-#define R 0x40
-#define R_1B 0x4F
-#define R_2B 0x4B
-#define R_4B 0x43
 
 //Valeur de base de la sortie des messages CanOpen
 TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
+
+//Position de l'effecteur (absolue)
+float abs_posX, abs_posY;
 
 //================INITIALISATION_PEAK================
 
@@ -390,12 +384,6 @@ void set_relativePosition(int id, int userInput){
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
-    //Controlword (New Position)
-    msg_data[0] = 0x00;
-    msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
-    write_message(msg);
-
     if(userInput>0xFFFF){ 
         userInput = 0xFFFF;
     }
@@ -403,15 +391,25 @@ void set_relativePosition(int id, int userInput){
     printf("UserInput : %hhx\n %d\n", userInput, userInput);
     
     //Target position
-    //On limite à 1 Bytes
-    msg_data[0] = 0;
-    msg_data[1] = 0;
-    msg_data[2] = (userInput>>8)%255;
+    //On limite à 2 Bytes
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x00;
+    msg_data[2] = 0x0;//(userInput>>8)%255;
     msg_data[3] = userInput;
-    
+
+    printf("UserInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
     //ATTENTION : W_4B EST ESSENTIEL
     init_msg_SDO(&msg, id, W_4B, 0x60, 0x7A, 0x00, msg_data);
     write_message(msg);
+
+    //Controlword (New Position)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    write_message(msg);
+
+    //Attente obligé 
+    usleep(1000);
 
     //Controlword (relative position)
     msg_data[0] = 0;
@@ -425,28 +423,33 @@ void set_relativePosition(int id, int userInput){
     init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
     write_message(msg);*/
 
-
-    //Attente obligé 
-    usleep(1000);
 }
 
 //Fonction demandant à l'utilisateur une position et la mettant
-void set_position(int id){
+void set_userPosition(int id){
     uint32_t userInput = 1;
     TPCANMsg msg;
     uint8_t msg_data[4];
     bzero(msg_data, 4);
     bool wait= true;
 
-    wait = init_asservissementPosition(id);
+    int get;
 
+    wait = init_asservissementPosition(id);
     while(wait);
 
     while(userInput != 0){
         printf("Donnez une valeur en decimal pour la position (0 pour quitter): \n");
         cin >> userInput;
         set_relativePosition(id, userInput);
-        usleep(1000);
+
+        //ENDROIT A VERIFIER ==========================================
+        do{
+            init_msg_SDO(&msg, id, R, 0x60, 0x40, 0x00, msg_data);
+            get = get_value(msg);
+            usleep(10);
+        }while(((get>>5)%2));
+        //=============================================================
     }
 
     msg_data[0] = 0x01;
@@ -457,6 +460,47 @@ void set_position(int id){
     printf("Fin du programme : \n");
 }
 
+//Fonction controlant tous les EPOS en fonction de leur position
+//nb_points = nb de points entre la position actuelle et l'arrivée
+void control_allPosition(int nb_points){
+    
+    float wantPosX, wantPosY;
+    int val_motor1, val_motor2, val_motor3;
+
+    //Initialisation de tous les cartes EPOS
+    bool wait = init_asservissementPosition(COBID_ALL_CAN_SDO);
+    while(wait);
+
+
+    for(int i=0; i<nb_points; i++){
+        //On incrémente en fonction du nombre de points
+        //X
+        if(abs_posX < wantPosX){
+            abs_posX += wantPosX/nb_points;
+        }
+        else if(abs_posX > wantPosX){
+            abs_posX -= wantPosX/nb_points;
+        }
+        //Y
+        if(abs_posY < wantPosY){
+            abs_posY += wantPosY/nb_points;
+        }
+        else if(abs_posY > wantPosY){
+            abs_posY -= wantPosY/nb_points;
+        }
+        
+
+        //Calcul des positions voulue avec abs_posX et abs_posY :
+        //===========================================A FAIRE
+        //Envoie des données dans les moteurs
+        set_relativePosition(COBID_CAN1_SDO, val_motor1);
+        set_relativePosition(COBID_CAN2_SDO, val_motor2);
+        set_relativePosition(COBID_CAN3_SDO, val_motor3);
+        
+        //Attente que tous les moteurs soit arrivé 
+        //===========================================A FAIRE
+    }
+}
 //==================TORQUE MODE==================
 
 //Initialisation du mode Couple du moteur
