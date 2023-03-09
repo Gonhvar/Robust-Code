@@ -12,6 +12,7 @@
 #include "Robust.h"
 
 
+
 //Valeur de base de la sortie des messages CanOpen
 TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
