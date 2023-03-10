@@ -348,6 +348,20 @@ void def_positionAbsolue(int id){
     write_message(msg);
 }
 
+//eteint tous le moteur de COBID id en mettant le statusWord a QuickStop
+void quickStop(ind id) {
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+    //Controlword (quickstop)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x06;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+}
+
 //Initialisation du mode Position du moteur
 bool init_asservissementPosition(int id){
 
@@ -470,7 +484,7 @@ void set_userPosition(int id){
 void control_allPosition(int nb_points){
     float wantPosX, wantPosY;
     float deplacementX, deplacementY;
-    int val_motor1, val_motor2, val_motor3;
+    int val_motor1=100, val_motor2, val_motor3;
 
 
     uint8_t quit = 1;
@@ -626,6 +640,8 @@ void mode_selection(int id){
 //==================MAIN==================
 int main(){
 
+    int id = COBID_CAN1_SDO;
+
     //Init Dynamique des valeurs de channel et de baudrate 
     channelUsed = find_channel();
     //Remettre a la fin
@@ -634,5 +650,24 @@ int main(){
     //Initialisation du PEAK
     initialise_CAN_USB();
 
-    mode_selection(COBID_CAN3_SDO);
+    TPCANMsg msg;
+
+    //Controlword (New Position)
+    uint8_t msg_data[4];
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+
+
+
+    def_positionAbsolue(COBID_CAN1_SDO);
+
+    init_asservissementPosition(COBID_CAN1_SDO);
+
+    //set_relativePosition(COBID_CAN1_SDO, 100);
+
+ 
+
 }
