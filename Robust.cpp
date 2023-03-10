@@ -349,7 +349,7 @@ void def_positionAbsolue(int id){
 }
 
 //eteint tous le moteur de COBID id en mettant le statusWord a QuickStop
-void quickStop(ind id) {
+void quickStop(int id) {
     TPCANMsg msg;
     uint8_t msg_data[4];
     bzero(msg_data, 4);
@@ -665,6 +665,10 @@ int main(){
     def_positionAbsolue(COBID_CAN1_SDO);
 
     init_asservissementPosition(COBID_CAN1_SDO);
+
+    sleep(1);
+
+    quickStop(COBID_CAN1_SDO);
 
     //set_relativePosition(COBID_CAN1_SDO, 100);
 
