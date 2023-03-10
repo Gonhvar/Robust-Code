@@ -841,11 +841,49 @@ void mode_selection(int id){
     }
 }
 
+//==================AUTRES==================
+
+/**
+ * @brief Va lire la valeur de Pos absolue dans le fichier pos_effecteur.txt
+ * 
+ */
+void readPos(){
+    string s;
+    string delimiter = "|";
+    ifstream myfile;
+    myfile.open ("pos_effecteur.txt");
+    getline(myfile, s);
+
+    size_t pos = 0;
+    string token[2];
+
+    pos = s.find(delimiter);
+    token[0]= s.substr(0, pos);
+    s.erase(0, pos + delimiter.length());
+    pos = s.find(delimiter);
+    token[1] = s.substr(0, pos);
+
+    abs_posX = stof(token[0]);
+    abs_posY =stof(token[1]);
+}
+
+/**
+ * @brief Ecrit la valeur locale de la position de l'effecteur dans le fichier pos_effecteur.txt
+ * 
+ */
+void writePos(){
+    ofstream myfile;
+    myfile.open ("pos_effecteur.txt");
+    myfile << abs_posX << '|' << abs_posY << endl;
+    myfile.close();
+}
 
 //==================MAIN==================
 int main(){
     //Initialisation du PEAK
     initialise_CAN_USB();
 
+    readPos();
     mode_selection(COBID_CAN3_SDO);
+    writePos();
 }
