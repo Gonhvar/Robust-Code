@@ -469,29 +469,23 @@ void set_userPosition(int id){
 //nb_points = nb de points entre la position actuelle et l'arrivée
 void control_allPosition(int nb_points){
     float wantPosX, wantPosY;
+    float deplacementX, deplacementY;
     int val_motor1, val_motor2, val_motor3;
+
+
     uint8_t quit = 1;
 
     do{
         //On va chercher la valeur voulue
         get_manualWantedPos(&wantPosX, &wantPosY);
 
+        deplacementX = (wantPosX-abs_posX)/nb_points;
+        deplacementY = (wantPosY-abs_posY)/nb_points;
+
         for(int i=0; i<nb_points; i++){
             //On incrémente en fonction du nombre de points
-            //X
-            if(abs_posX < wantPosX){
-                abs_posX += wantPosX/nb_points;
-            }
-            else if(abs_posX > wantPosX){
-                abs_posX -= wantPosX/nb_points;
-            }
-            //Puis Y
-            if(abs_posY < wantPosY){
-                abs_posY += wantPosY/nb_points;
-            }
-            else if(abs_posY > wantPosY){
-                abs_posY -= wantPosY/nb_points;
-            }
+            abs_posX += deplacementX;
+            abs_posY +=deplacementY;
             
             //Calcul des positions voulue avec abs_posX et abs_posY :
             
@@ -513,6 +507,7 @@ void control_allPosition(int nb_points){
     }while(quit!= 0);
 }
 
+//Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
 void get_manualWantedPos(float *wantPosX , float *wantPosY){
     cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
     do{
