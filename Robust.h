@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
+#include <vector>
 
 using namespace std;
 
@@ -24,11 +25,12 @@ using namespace std;
 
 //INDEX :
 #define CONTROLWORD 0x6040
+#define STATUSWORD  0x6041
 #define MODES_OF_OPERATION 0x6060
-#define HOMING_METHOD 0x6098
-#define TARGET_POSITION 0x607A
-#define TORQUE_OFFSET 0x60B2
 #define TARGET_TORQUE 0x6071
+#define TARGET_POSITION 0x607A
+#define HOMING_METHOD 0x6098
+#define TORQUE_OFFSET 0x60B2
 
 
 
@@ -37,3 +39,5 @@ TPCANBaudrate init_baudrate_doc();
 void initialise_CAN_USB();
 void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, uint8_t index_2, uint8_t subIndex, uint8_t data[4]);
 void get_manualWantedPos(float *wantPosX , float *wantPosY);
+void checkEndTarget(uint8_t* status, int id);
+void checkAllEndTarget();

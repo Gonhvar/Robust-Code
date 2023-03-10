@@ -11,7 +11,14 @@
 
 #include "Robust.h"
 
-
+typedef struct tagmsgRecu{
+  uint8_t id;
+  uint16_t index;
+  uint8_t subIndex;
+  uint32_t valData;
+  //True si le message en question n'est qu'un message de confirmation de reception
+  bool isConfirmReception;
+}msgRecu; 
 
 //Valeur de base de la sortie des messages CanOpen
 TPCANHandle channelUsed = PCAN_USBBUS1;
@@ -188,10 +195,10 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length, uint16_t index, ui
 }
 
 //Affiche le message donné
-uint32_t print_message(TPCANMsg received){
+void print_message(TPCANMsg received){
 
     uint32_t result = -1;
-    
+
     //Si ce n'est pas un message renvoyé aprés ecriture
     if(received.DATA[0]!=0x60){
         printf("\n+++++++++++++++++\n");
@@ -224,16 +231,57 @@ uint32_t print_message(TPCANMsg received){
         }
         printf("\n+++++++++++++++++\n");
             
-    }else{
+    }
+    else{
         printf("Message confirmation de Index : 0x%hhx-%hhx | Sub-Index : 0x%hhx\n", received.DATA[2], received.DATA[1], received.DATA[3]);
         //printf("Data : %hhx | %hhx | %hhx | %hhx", received.DATA[7], received.DATA[6], received.DATA[5], received.DATA[4]);
-        return 0;
     }
-    return result;
+}
+
+//Met le message reçue dans une struct msgRecu
+msgRecu get_message(TPCANMsg received){
+
+    uint32_t result = -1;
+    msgRecu msgRecup;
+
+    msgRecup.id = received.ID % 16;
+    msgRecup.index = 8 << received.DATA[2] && received.DATA[1];
+    msgRecup.subIndex = received.DATA[3];
+    
+    //Si ce n'est pas un message renvoyé aprés ecriture
+    if(received.DATA[0]!=0x60){
+        switch(received.DATA[0]){
+            case R_1B :
+                //1 octet
+                result = received.DATA[4];
+                break;
+
+            case R_2B :
+                //2 octets
+                result = (received.DATA[5]<<8) | received.DATA[4];
+                break;
+
+            case R_4B :
+                //4 octets
+                result = (received.DATA[7]<<24) | (received.DATA[6]<<16)| (received.DATA[5]<<8) | received.DATA[4];
+                break;
+                
+            default : 
+                result= 0;
+        }
+    }
+    else{
+        msgRecup.isConfirmReception = true;
+        return msgRecup;
+    }
+
+    msgRecup.valData = result;
+    msgRecup.isConfirmReception = false;
+    return msgRecup;
 }
 
 //Lis dans le peak 
-uint32_t read_message(){
+vector<msgRecu> read_message(){
 
     TPCANMsg received;
     TPCANStatus result;
@@ -241,7 +289,7 @@ uint32_t read_message(){
     char strMsg[256];
 
     uint8_t i=0;
-    uint32_t get;
+    vector<msgRecu> get;
 
     do
     {
@@ -252,7 +300,8 @@ uint32_t read_message(){
         if(result != PCAN_ERROR_QRCVEMPTY)
         {
             //Un message et reçue et on l'affiche :
-            get = print_message(received);
+            print_message(received);
+            get.push_back(get_message(received));
             //printf("Le message est arrivé en %dms\n", timestamp.millis);
             //printf("msg type : %hhx\n", received.MSGTYPE);
         }
@@ -286,7 +335,7 @@ void write_message(TPCANMsg msg){
 }
 
 //Va chercher et renvoie la valeur de l'index demandé
-uint32_t get_value(TPCANMsg toSend){
+vector<msgRecu> get_value(TPCANMsg toSend){
     //----------------------------------
     //DATA[0] Toujours égale à 0x40 si on veut read une valeur
     toSend.DATA[0] = R;
@@ -399,7 +448,7 @@ void set_relativePosition(int id, int userInput){
     //On limite à 2 Bytes
     msg_data[0] = 0x00;
     msg_data[1] = 0x00;
-    msg_data[2] = 0x0;//(userInput>>8)%255;
+    msg_data[2] = 0x0;//(userInput>>8)%256;
     msg_data[3] = userInput;
 
     printf("UserInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
@@ -437,8 +486,7 @@ void set_userPosition(int id){
     uint8_t msg_data[4];
     bzero(msg_data, 4);
     bool wait= true;
-
-    int get;
+    vector<msgRecu> get;
 
     wait = init_asservissementPosition(id);
     while(wait);
@@ -449,11 +497,9 @@ void set_userPosition(int id){
         set_relativePosition(id, userInput);
 
         //ENDROIT A VERIFIER ==========================================
-        do{
-            init_msg_SDO(&msg, id, R, CONTROLWORD, 0x00, msg_data);
-            get = get_value(msg);
-            usleep(10);
-        }while(((get>>5)%2));
+        init_msg_SDO(&msg, id, R, CONTROLWORD, 0x00, msg_data);
+        get = get_value(msg);
+        usleep(10);
         //=============================================================
     }
 
@@ -471,23 +517,25 @@ void control_allPosition(int nb_points){
     float wantPosX, wantPosY;
     float deplacementX, deplacementY;
     int val_motor1, val_motor2, val_motor3;
-
-
     uint8_t quit = 1;
 
     do{
         //On va chercher la valeur voulue
         get_manualWantedPos(&wantPosX, &wantPosY);
 
+        //On recupére la valeur de chaque incrémentation
         deplacementX = (wantPosX-abs_posX)/nb_points;
         deplacementY = (wantPosY-abs_posY)/nb_points;
 
+        wantPosX = abs_posX;
+        wantPosY = abs_posY;
+
         for(int i=0; i<nb_points; i++){
             //On incrémente en fonction du nombre de points
-            abs_posX += deplacementX;
-            abs_posY +=deplacementY;
+            wantPosX += deplacementX;
+            wantPosY +=deplacementY;
             
-            //Calcul des positions voulue avec abs_posX et abs_posY :
+            //Calcul des positions voulue avec wantPosX et wantPosY :
             
             //===========================================A FAIRE
 
@@ -496,16 +544,88 @@ void control_allPosition(int nb_points){
             set_relativePosition(COBID_CAN2_SDO, val_motor2);
             set_relativePosition(COBID_CAN3_SDO, val_motor3);
             
-            //do{
-                //Attente que tous les moteurs soit arrivé 
-                //===========================================A FAIRE
+            //Attente que tous les moteurs soit arrivé 
+            //===========================================A FAIRE
+            checkAllEndTarget();
+            
 
-            //}while();
+            //On met à jour la position de l'effecteur
+            abs_posX = wantPosX;
+            abs_posY = wantPosY;
         }
         cout << "0. Pour quitter";
         cin >> quit;
     }while(quit!= 0);
 }
+
+//Fonction regardant si le moteur id à atteint sa position demandé et revois status pour le vérifier
+void checkEndTarget(uint8_t* status, int id){
+    vector<msgRecu> get;
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+
+    init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
+    get = get_value(msg);
+
+    for(msgRecu g : get){
+        //Bit 10 = Target Reached
+        if(g.index == STATUSWORD && ((g.valData>>9 & 0b1)==1)){
+            switch(g.id){
+                case 1 :
+                    *status = *status | 0b001;
+                    break;
+                
+                case 2 :
+                    *status = *status | 0b010;
+                    break;
+                
+                case 3 :
+                    *status = *status | 0b100;
+                    break;
+                
+                default : 
+                    cout << "Erreur sur le COB-ID\n";
+            }
+        }
+    }
+}
+
+//Regarde et attends que toutes les cartes ai fini leurs déplacement
+void checkAllEndTarget(){
+    uint8_t status = 0;
+    
+    
+    //Demander à chaques cartes
+    checkEndTarget(&status, COBID_ALL_CAN_SDO);
+    
+    //Check si toutes les cartes sont arrivé à destination sinon recheck
+    while(status != 0b111){
+        switch(status){
+            case 0b001 :
+                break;
+
+            case 0b010 :
+                break;
+
+            case 0b100 :
+                break;
+
+            case 0b011 :
+                break;
+
+            case 0b110 :
+                break;
+
+            case 0b101 :
+                break;
+
+            default :
+                break;
+        }
+    }
+}
+
+
 
 //Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
 void get_manualWantedPos(float *wantPosX , float *wantPosY){
