@@ -135,6 +135,8 @@ void initialise_CAN_USB(){
         printf("Channel 0x%X could not be initialized\n", channelUsed);
 }
 
+
+
 //==================MESSAGES==================
 //Initialise un TPCANMsg avec les valeurs données 
 void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, uint8_t index_2, uint8_t subIndex, uint8_t data[4]){
@@ -296,6 +298,8 @@ uint32_t get_value(TPCANMsg toSend){
 
     return (read_message());
 }
+
+
 
 //==================POSITION MODE==================
 
@@ -468,10 +472,7 @@ void control_allPosition(int nb_points){
     float wantPosX, wantPosY;
     int val_motor1, val_motor2, val_motor3;
 
-    //Initialisation de tous les cartes EPOS
-    bool wait = init_asservissementPosition(COBID_ALL_CAN_SDO);
-    while(wait);
-
+    get_manualWantedPos(&wantPosX, &wantPosY);
 
     for(int i=0; i<nb_points; i++){
         //On incrémente en fonction du nombre de points
@@ -502,6 +503,20 @@ void control_allPosition(int nb_points){
         //===========================================A FAIRE
     }
 }
+
+void get_manualWantedPos(float *wantPosX , float *wantPosY){
+    cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY;  
+    do{
+        cout << "Donnez une valeur X entre 0 et 400mm";
+        cin >> *wantPosX;
+    }while(!(0 > *wantPosX > 400));
+
+    do{
+        cout << "Donnez une valeur Y entre 0 et 240mm";
+        cin >> *wantPosY;
+    }while(!(0 > *wantPosY > 240));
+}
+
 //==================TORQUE MODE==================
 
 //Initialisation du mode Couple du moteur
@@ -564,35 +579,45 @@ void set_torque(int id){
     printf("Fin du programme : \n");
 }
 
+
+
 //==================MENU==================
+
 //Menu de selection des modes
 void mode_selection(int id){
     int userInput = 8;
+    bool wait;
     do{
         printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Controle en Vitesse\n");
         cin >> userInput;
     }while(userInput>3);
 
     switch (userInput){
-        case 0 : printf("Quitte\n"); 
-        break;
+        case 0 : 
+            printf("Quitte\n"); 
+            break;
 
         case 1 : 
-        control_allPosition(100);
-        break;
+            //Initialisation de tous les cartes EPOS
+            wait = init_asservissementPosition(COBID_ALL_CAN_SDO);
+            while(wait);
+            //Control en position de toutes les cartes EPOS
+            control_allPosition(100);
+            break;
 
         case 2 : 
-        set_torque(id);
-        break;
+            set_torque(id);
+            break;
 
         case 3 :
-        printf("Pas encore implémenté\n");
-        break;
+            printf("Pas encore implémenté\n");
+            break;
 
         default : 
             printf("Valeur invalide\n");
     }
 }
+
 
 //==================MAIN==================
 int main(){
