@@ -22,6 +22,15 @@ using namespace std;
 #define R_2B 0x4B
 #define R_4B 0x43
 
+//INDEX :
+#define CONTROLWORD 0x6040
+#define MODES_OF_OPERATION 0x6060
+#define HOMING_METHOD 0x6098
+#define TARGET_POSITION 0x607A
+#define TORQUE_OFFSET 0x60B2
+#define TARGET_TORQUE 0x6071
+
+
 
 TPCANHandle find_channel();
 TPCANBaudrate init_baudrate_doc();

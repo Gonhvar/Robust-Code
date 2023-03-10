@@ -139,7 +139,7 @@ void initialise_CAN_USB(){
 
 //==================MESSAGES==================
 //Initialise un TPCANMsg avec les valeurs données 
-void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, uint8_t index_2, uint8_t subIndex, uint8_t data[4]){
+void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length, uint16_t index, uint8_t subIndex, uint8_t data[4]){
     // A CAN message is configured
     //Note : BYTE DATA[8] 
 
@@ -150,8 +150,8 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, ui
     //On copie chacune des valeurs de msg_data dans msg->DATA
 
     msg->DATA[0] = data_length;
-    msg->DATA[1] = index_2;
-    msg->DATA[2] = index_1;
+    msg->DATA[1] = index % 256;
+    msg->DATA[2] = index >> 8;
     msg->DATA[3] = subIndex;
     
     //On met la data de maniére un peu différente en fonction de la taille du msg
@@ -311,18 +311,18 @@ void def_positionAbsolue(int id){
 
     //Modes of operation (Homing Mode)
     msg_data[0] = 0x06;
-    init_msg_SDO(&msg, id, W_1B, 0x60, 0x60, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
     write_message(msg);
 
     //Homing method
     msg_data[0] = 0x25; //=37d
-    init_msg_SDO(&msg, id, W_1B, 0x60, 0x98, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, HOMING_METHOD, 0x00, msg_data);
     write_message(msg);
 
     //Controlword (Shutdown)
     msg_data[0] = 0x00;
     msg_data[1] = 0x06;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     usleep(1000);
@@ -330,7 +330,7 @@ void def_positionAbsolue(int id){
     //Controlword (Switch on & Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     usleep(1000);
@@ -338,13 +338,13 @@ void def_positionAbsolue(int id){
     //Controlword (Start homing)
     msg_data[0] = 0x00;
     msg_data[1] = 0x1F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     //Controlword (Halt homing)
     msg_data[0] = 0x01;
     msg_data[1] = 0x1F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 }
 
@@ -359,7 +359,7 @@ bool init_asservissementPosition(int id){
 
     //---------Modes of operation
     msg_data[0] = 0x01; //profil position mode
-    init_msg_SDO(&msg, id, W_1B, 0x60, 0x60, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
     write_message(msg);
 
     //---------Set parameter : fait avec EPOSSTUDIO
@@ -369,7 +369,7 @@ bool init_asservissementPosition(int id){
     //Controlword (shutdown)
     msg_data[0] = 0x00;
     msg_data[1] = 0x06;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     usleep(1000);
@@ -377,7 +377,7 @@ bool init_asservissementPosition(int id){
     //Controlword (Switch on and Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     return false;
@@ -404,13 +404,13 @@ void set_relativePosition(int id, int userInput){
 
     printf("UserInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
     //ATTENTION : W_4B EST ESSENTIEL
-    init_msg_SDO(&msg, id, W_4B, 0x60, 0x7A, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
     write_message(msg);
 
     //Controlword (New Position)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     //Attente obligé 
@@ -419,13 +419,13 @@ void set_relativePosition(int id, int userInput){
     //Controlword (relative position)
     msg_data[0] = 0;
     msg_data[1] = 0x5F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     /*//ABSOLUE
     msg_data[0] = 0x00;
     msg_data[1] = 0x1F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);*/
 
 }
@@ -444,13 +444,13 @@ void set_userPosition(int id){
     while(wait);
 
     while(userInput != 0){
-        printf("Donnez une valeur en decimal pour la position (0 pour quitter): \n");
+        cout << "Donnez une valeur en decimal pour la position (0 pour quitter): \n";
         cin >> userInput;
         set_relativePosition(id, userInput);
 
         //ENDROIT A VERIFIER ==========================================
         do{
-            init_msg_SDO(&msg, id, R, 0x60, 0x40, 0x00, msg_data);
+            init_msg_SDO(&msg, id, R, CONTROLWORD, 0x00, msg_data);
             get = get_value(msg);
             usleep(10);
         }while(((get>>5)%2));
@@ -459,60 +459,69 @@ void set_userPosition(int id){
 
     msg_data[0] = 0x01;
     msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
-    printf("Fin du programme : \n");
+    cout << "Fin du programme : \n";
 }
 
 //Fonction controlant tous les EPOS en fonction de leur position
 //nb_points = nb de points entre la position actuelle et l'arrivée
 void control_allPosition(int nb_points){
-    
     float wantPosX, wantPosY;
     int val_motor1, val_motor2, val_motor3;
+    uint8_t quit = 1;
 
-    get_manualWantedPos(&wantPosX, &wantPosY);
+    do{
+        //On va chercher la valeur voulue
+        get_manualWantedPos(&wantPosX, &wantPosY);
 
-    for(int i=0; i<nb_points; i++){
-        //On incrémente en fonction du nombre de points
-        //X
-        if(abs_posX < wantPosX){
-            abs_posX += wantPosX/nb_points;
-        }
-        else if(abs_posX > wantPosX){
-            abs_posX -= wantPosX/nb_points;
-        }
-        //Y
-        if(abs_posY < wantPosY){
-            abs_posY += wantPosY/nb_points;
-        }
-        else if(abs_posY > wantPosY){
-            abs_posY -= wantPosY/nb_points;
-        }
-        
+        for(int i=0; i<nb_points; i++){
+            //On incrémente en fonction du nombre de points
+            //X
+            if(abs_posX < wantPosX){
+                abs_posX += wantPosX/nb_points;
+            }
+            else if(abs_posX > wantPosX){
+                abs_posX -= wantPosX/nb_points;
+            }
+            //Puis Y
+            if(abs_posY < wantPosY){
+                abs_posY += wantPosY/nb_points;
+            }
+            else if(abs_posY > wantPosY){
+                abs_posY -= wantPosY/nb_points;
+            }
+            
+            //Calcul des positions voulue avec abs_posX et abs_posY :
+            
+            //===========================================A FAIRE
 
-        //Calcul des positions voulue avec abs_posX et abs_posY :
-        //===========================================A FAIRE
-        //Envoie des données dans les moteurs
-        set_relativePosition(COBID_CAN1_SDO, val_motor1);
-        set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        set_relativePosition(COBID_CAN3_SDO, val_motor3);
-        
-        //Attente que tous les moteurs soit arrivé 
-        //===========================================A FAIRE
-    }
+            //Envoie des données dans les moteurs
+            set_relativePosition(COBID_CAN1_SDO, val_motor1);
+            set_relativePosition(COBID_CAN2_SDO, val_motor2);
+            set_relativePosition(COBID_CAN3_SDO, val_motor3);
+            
+            //do{
+                //Attente que tous les moteurs soit arrivé 
+                //===========================================A FAIRE
+
+            //}while();
+        }
+        cout << "0. Pour quitter";
+        cin >> quit;
+    }while(quit!= 0);
 }
 
 void get_manualWantedPos(float *wantPosX , float *wantPosY){
-    cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY;  
+    cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
     do{
-        cout << "Donnez une valeur X entre 0 et 400mm";
+        cout << "Donnez une valeur X entre 0 et 400mm\n";
         cin >> *wantPosX;
     }while(!(0 > *wantPosX > 400));
 
     do{
-        cout << "Donnez une valeur Y entre 0 et 240mm";
+        cout << "Donnez une valeur Y entre 0 et 240mm\n";
         cin >> *wantPosY;
     }while(!(0 > *wantPosY > 240));
 }
@@ -527,13 +536,13 @@ void init_Torque(int id){
 
     //Modes of operation (Cyclic Synchronous Torque Mode)
     msg_data[0] = 0x0A;
-    init_msg_SDO(&msg, id, W_1B, 0x60, 0x60, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
     write_message(msg);
 
     //Controlword (Shutdown)
     msg_data[0] = 0x00;
     msg_data[1] = 0x06;
-    init_msg_SDO(&msg, id, W_1B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 }
 
@@ -555,7 +564,7 @@ void set_torque(int id){
 
     msg_data[0] = userInput;
     msg_data[1] = userInput>>8;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0xB2, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, TORQUE_OFFSET, 0x00, msg_data);
     write_message(msg);
 
     while(userInput != 0){
@@ -564,7 +573,7 @@ void set_torque(int id){
 
         msg_data[0] = userInput2>>8;
         msg_data[1] = userInput2;
-        init_msg_SDO(&msg, id, W_2B, 0x60, 0x71, 0x00, msg_data);
+        init_msg_SDO(&msg, id, W_2B, TARGET_TORQUE, 0x00, msg_data);
         write_message(msg);
 
         usleep(1000);
@@ -573,7 +582,7 @@ void set_torque(int id){
     //QuickStop
     msg_data[0] = 0x00;
     msg_data[1] = 0x0B;
-    init_msg_SDO(&msg, id, W_2B, 0x60, 0x40, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     printf("Fin du programme : \n");
