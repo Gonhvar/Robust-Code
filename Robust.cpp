@@ -602,29 +602,37 @@ void checkAllEndTarget(){
     while(status != 0b111){
         switch(status){
             case 0b001 :
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
             case 0b010 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
             case 0b100 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                checkEndTarget(&status, COBID_CAN2_SDO);
                 break;
 
             case 0b011 :
-                break;
-
-            case 0b110 :
+                checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
             case 0b101 :
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                break;
+
+            case 0b110 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
                 break;
 
             default :
-                break;
+                cout << "Erreur dans le recheck des valeurs de STATUSWORD\n";
         }
     }
 }
-
 
 
 //Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
