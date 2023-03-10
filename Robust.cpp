@@ -11,15 +11,6 @@
 
 #include "Robust.h"
 
-typedef struct tagmsgRecu{
-  uint8_t id;
-  uint16_t index;
-  uint8_t subIndex;
-  uint32_t valData;
-  //True si le message en question n'est qu'un message de confirmation de reception
-  bool isConfirmReception;
-}msgRecu; 
-
 //Valeur de base de la sortie des messages CanOpen
 TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
@@ -29,7 +20,11 @@ float abs_posX, abs_posY;
 
 //================INITIALISATION_PEAK================
 
-//Va chercher le channel disponible automatiquement
+/**
+ * @brief Va chercher un channel disponible du PEAK automatiquement
+ * 
+ * @return TPCANHandle : Channel trouvé
+ */
 TPCANHandle find_channel(){
     TPCANHandle channelsToCheck[] = { PCAN_USBBUS1, PCAN_USBBUS2, PCAN_USBBUS3, PCAN_USBBUS4, PCAN_USBBUS5, PCAN_USBBUS6
      , PCAN_USBBUS7, PCAN_USBBUS8, PCAN_USBBUS9, PCAN_USBBUS10, PCAN_USBBUS11, PCAN_USBBUS12, PCAN_USBBUS13, PCAN_USBBUS14
@@ -70,7 +65,12 @@ TPCANHandle find_channel(){
     return channelsToCheck[0];
 }
 
-//Va chercher le Baudrate automatiquement 
+
+/**
+ * @brief Va chercher le baudrate de la liaison CANOpen automatiquement 
+ * 
+ * @return TPCANBaudrate : Baudrate trouvé
+ */
 TPCANBaudrate init_baudrate_doc(){
 
     TPCANBaudrate baudrates[] = { PCAN_BAUD_1M, PCAN_BAUD_500K, PCAN_BAUD_250K, PCAN_BAUD_125K};
@@ -109,12 +109,20 @@ TPCANBaudrate init_baudrate_doc(){
     return PCAN_BAUD_1M;
 }
 
-//Initialise la connexion avec le PEAK
+/**
+ * @brief Initialise la connexion avec le PEAK
+ * 
+ */
 void initialise_CAN_USB(){
     
     char strMsg[256];
     TPCANStatus result;
     DWORD receptionState;
+
+    //Init Dynamique des valeurs de channel et de baudrate 
+    channelUsed = find_channel();
+    //Remettre a la fin
+    //baudrateUsed = init_baudrate_doc();
 
     if (CAN_Initialize(channelUsed, baudrateUsed) == PCAN_ERROR_OK)
     {
@@ -145,7 +153,17 @@ void initialise_CAN_USB(){
 
 
 //==================MESSAGES==================
-//Initialise un TPCANMsg avec les valeurs données 
+
+/**
+ * @brief Initialise un TPCANMsg (Message SDO pour CANOpen) avec les valeurs données 
+ * 
+ * @param msg : Message renvoyé en sortie
+ * @param id : Valeur du COB-ID voulu
+ * @param data_length : Taille du message (choix entre 1, 2 et 4 bytes) 
+ * @param index : Valeur de l'index
+ * @param subIndex : Valeur du sous-index
+ * @param data : Valeur des données à envoyer
+ */
 void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length, uint16_t index, uint8_t subIndex, uint8_t data[4]){
     // A CAN message is configured
     //Note : BYTE DATA[8] 
@@ -194,7 +212,12 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length, uint16_t index, ui
     }
 }
 
-//Affiche le message donné
+
+/**
+ * @brief Affiche le message donné
+ * 
+ * @param received (TPCANMsg) : Message à afficher
+ */
 void print_message(TPCANMsg received){
 
     uint32_t result = -1;
@@ -238,7 +261,13 @@ void print_message(TPCANMsg received){
     }
 }
 
-//Met le message reçue dans une struct msgRecu
+
+/**
+ * @brief Met le message en entrée dans une struct msgRecu
+ * 
+ * @param received (TPCANMsg) : Message à transcrire
+ * @return msgRecu : Message transcrit
+ */
 msgRecu get_message(TPCANMsg received){
 
     uint32_t result = -1;
@@ -280,7 +309,11 @@ msgRecu get_message(TPCANMsg received){
     return msgRecup;
 }
 
-//Lis dans le peak 
+/**
+ * @brief Lis dans les messages disponible dans le PEAK 
+ * 
+ * @return vector<msgRecu> : Renvois un array de msgRecu (venant de la liste d'attente du PEAK)
+ */
 vector<msgRecu> read_message(){
 
     TPCANMsg received;
@@ -310,7 +343,12 @@ vector<msgRecu> read_message(){
     return get;
 }
 
-//Ecrit dans l'index spécifié
+
+/**
+ * @brief Ecrit le message spécifié
+ * 
+ * @param msg (TPCANMsg) : message à écrire
+ */
 void write_message(TPCANMsg msg){
 
     TPCANStatus result;
@@ -334,7 +372,12 @@ void write_message(TPCANMsg msg){
     usleep(600);
 }
 
-//Va chercher et renvoie la valeur de l'index demandé
+/**
+ * @brief Va chercher et renvoie la valeur de l'index demandé
+ * 
+ * @param toSend (TPCANMsg) : Valeur de l'index 
+ * @return vector<msgRecu> : Array des messages lus 
+ */
 vector<msgRecu> get_value(TPCANMsg toSend){
     //----------------------------------
     //DATA[0] Toujours égale à 0x40 si on veut read une valeur
@@ -352,7 +395,11 @@ vector<msgRecu> get_value(TPCANMsg toSend){
 
 //==================POSITION MODE==================
 
-//Réinitialise la position absolue du moteur (calibration)
+/**
+ * @brief Réinitialise la position absolue du moteur (calibration)
+ * 
+ * @param id (int) : COB-ID à spécifier
+ */
 void def_positionAbsolue(int id){
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -397,7 +444,13 @@ void def_positionAbsolue(int id){
     write_message(msg);
 }
 
-//Initialisation du mode Position du moteur
+/**
+ * @brief Initialisation du mode Position du moteur
+ * 
+ * @param id (int) : COB-ID à spécifier
+ * @return true : n'est jamais renvoyé
+ * @return false : la fonction est arrivé à la fin
+ */
 bool init_asservissementPosition(int id){
 
     TPCANMsg msg;
@@ -432,26 +485,31 @@ bool init_asservissementPosition(int id){
     return false;
 }
 
-//Définie la Position relative en fonction de l'userInput
-void set_relativePosition(int id, int userInput){
+/**
+ * @brief Déplace relativement le moteur d'un nombre de pas donné
+ * 
+ * @param id (int) : COB-ID à spécifier
+ * @param uInput (int) : nombre de pas de déplacement du moteur
+ */
+void set_relativePosition(int id, int uInput){
     TPCANMsg msg;
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
-    if(userInput>0xFFFF){ 
-        userInput = 0xFFFF;
+    if(uInput>0xFFFF){ 
+        uInput = 0xFFFF;
     }
 
-    printf("UserInput : %hhx\n %d\n", userInput, userInput);
+    printf("uInput : %hhx\n %d\n", uInput, uInput);
     
     //Target position
     //On limite à 2 Bytes
     msg_data[0] = 0x00;
     msg_data[1] = 0x00;
-    msg_data[2] = 0x0;//(userInput>>8)%256;
-    msg_data[3] = userInput;
+    msg_data[2] = 0x0;//(uInput>>8)%256;
+    msg_data[3] = uInput;
 
-    printf("UserInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
+    printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
     //ATTENTION : W_4B EST ESSENTIEL
     init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
     write_message(msg);
@@ -479,40 +537,12 @@ void set_relativePosition(int id, int userInput){
 
 }
 
-//Fonction demandant à l'utilisateur une position et la mettant
-void set_userPosition(int id){
-    uint32_t userInput = 1;
-    TPCANMsg msg;
-    uint8_t msg_data[4];
-    bzero(msg_data, 4);
-    bool wait= true;
-    vector<msgRecu> get;
 
-    wait = init_asservissementPosition(id);
-    while(wait);
-
-    while(userInput != 0){
-        cout << "Donnez une valeur en decimal pour la position (0 pour quitter): \n";
-        cin >> userInput;
-        set_relativePosition(id, userInput);
-
-        //ENDROIT A VERIFIER ==========================================
-        init_msg_SDO(&msg, id, R, CONTROLWORD, 0x00, msg_data);
-        get = get_value(msg);
-        usleep(10);
-        //=============================================================
-    }
-
-    msg_data[0] = 0x01;
-    msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
-    write_message(msg);
-
-    cout << "Fin du programme : \n";
-}
-
-//Fonction controlant tous les EPOS en fonction de leur position
-//nb_points = nb de points entre la position actuelle et l'arrivée
+/**
+ * @brief Fonction contrôlant toutes les EPOS4 en fonction de leur position relative
+ * 
+ * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
+ */
 void control_allPosition(int nb_points){
     float wantPosX, wantPosY;
     float deplacementX, deplacementY;
@@ -545,10 +575,8 @@ void control_allPosition(int nb_points){
             set_relativePosition(COBID_CAN3_SDO, val_motor3);
             
             //Attente que tous les moteurs soit arrivé 
-            //===========================================A FAIRE
             checkAllEndTarget();
             
-
             //On met à jour la position de l'effecteur
             abs_posX = wantPosX;
             abs_posY = wantPosY;
@@ -558,13 +586,19 @@ void control_allPosition(int nb_points){
     }while(quit!= 0);
 }
 
-//Fonction regardant si le moteur id à atteint sa position demandé et revois status pour le vérifier
-void checkEndTarget(uint8_t* status, int id){
+
+/**
+ * @brief Regarde si le moteur id à atteint sa position demandé et revois status pour le vérifier
+ * 
+ * @param status (uint8_t*) : Valeur modifiable informant quels moteurs sont arrivé à destination
+ * @param id (motId) : id du moteur
+ */
+void checkEndTarget(uint8_t* status, int motId){
     vector<msgRecu> get;
     uint8_t msg_data[4];
     TPCANMsg msg;
 
-    init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
+    init_msg_SDO(&msg, motId, R, STATUSWORD, 0x00, msg_data);
     get = get_value(msg);
 
     for(msgRecu g : get){
@@ -590,7 +624,10 @@ void checkEndTarget(uint8_t* status, int id){
     }
 }
 
-//Regarde et attends que toutes les cartes ai fini leurs déplacement
+/**
+ * @brief Regarde et attends que toutes les cartes ai fini leurs déplacement
+ * 
+ */
 void checkAllEndTarget(){
     uint8_t status = 0;
     
@@ -634,8 +671,13 @@ void checkAllEndTarget(){
     }
 }
 
-
-//Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
+//--------------MANUEL---------------
+/**
+ * @brief Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
+ * 
+ * @param wantPosX (float) : Position voulue en X 
+ * @param wantPosY (float) : Position voulue en Y
+ */
 void get_manualWantedPos(float *wantPosX , float *wantPosY){
     cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
     do{
@@ -649,9 +691,49 @@ void get_manualWantedPos(float *wantPosX , float *wantPosY){
     }while(!(0 > *wantPosY > 240));
 }
 
+/**
+ * @brief Fonction demandant à l'utilisateur une position et la mettant
+ * 
+ * @param id (int) : COB-ID à spécifier
+ */
+void set_manualUserPosition(int id){
+    uint32_t userInput = 1;
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+    bool wait= true;
+    vector<msgRecu> get;
+
+    wait = init_asservissementPosition(id);
+    while(wait);
+
+    while(userInput != 0){
+        cout << "Donnez une valeur en decimal pour la position (0 pour quitter): \n";
+        cin >> userInput;
+        set_relativePosition(id, userInput);
+
+        //ENDROIT A VERIFIER ==========================================
+        init_msg_SDO(&msg, id, R, CONTROLWORD, 0x00, msg_data);
+        get = get_value(msg);
+        usleep(10);
+        //=============================================================
+    }
+
+    msg_data[0] = 0x01;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    cout << "Fin du programme : \n";
+}
+
 //==================TORQUE MODE==================
 
-//Initialisation du mode Couple du moteur
+/**
+ * @brief Initialisation du mode Couple du moteur
+ * 
+ * @param id (int) : COB-ID à spécifier
+ */
 void init_Torque(int id){
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -669,7 +751,12 @@ void init_Torque(int id){
     write_message(msg);
 }
 
-//Fonction demandant à l'utilisateur un Couple et le met
+
+/**
+ * @brief Demande à l'utilisateur un Couple et le met sur le moteur
+ * 
+ * @param id (int) : COB-ID à spécifier
+ */
 void set_torque(int id){
 
     uint32_t userInput = 1;
@@ -715,7 +802,11 @@ void set_torque(int id){
 
 //==================MENU==================
 
-//Menu de selection des modes
+/**
+ * @brief Menu de selection des différents modes du programme
+ * 
+ * @param id (int) : COB-ID à spécifier
+ */
 void mode_selection(int id){
     int userInput = 8;
     bool wait;
@@ -753,12 +844,6 @@ void mode_selection(int id){
 
 //==================MAIN==================
 int main(){
-
-    //Init Dynamique des valeurs de channel et de baudrate 
-    channelUsed = find_channel();
-    //Remettre a la fin
-    //baudrateUsed = init_baudrate_doc();
-
     //Initialisation du PEAK
     initialise_CAN_USB();
 

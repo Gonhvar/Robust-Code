@@ -32,6 +32,16 @@ using namespace std;
 #define HOMING_METHOD 0x6098
 #define TORQUE_OFFSET 0x60B2
 
+typedef struct tagmsgRecu{
+  uint8_t id;
+  uint16_t index;
+  uint8_t subIndex;
+  uint32_t valData;
+  //True si le message en question n'est qu'un message de confirmation de reception
+  bool isConfirmReception;
+}msgRecu; 
+
+
 
 
 TPCANHandle find_channel();
