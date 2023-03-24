@@ -9,14 +9,15 @@
  * 
  */
 
-#include "Robust.h"
+#include "Robust.hpp"
+#include "Modele.hpp"
 
 //Valeur de base de la sortie des messages CanOpen
 TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
 
 //Position de l'effecteur (absolue)
-float abs_posX, abs_posY;
+float abs_posX = 400, abs_posY = 300;
 
 //================INITIALISATION_PEAK================
 
@@ -225,7 +226,7 @@ void print_message(TPCANMsg received){
 
     //Si ce n'est pas un message renvoyé aprés ecriture
     if(received.DATA[0]!=0x60){
-        printf("\n+++++++++++++++++\n");
+        printf("\n---------------n");
         printf("Index : 0x%hhx-%hhx | Sub-Index : 0x%hhx\n", received.DATA[2], received.DATA[1], received.DATA[3]);
 
         switch(received.DATA[0]){
@@ -256,7 +257,7 @@ void print_message(TPCANMsg received){
             default : 
                 printf("Erreur taille du message : 0x%hhx\n", received.DATA[0]);
         }
-        printf("\n+++++++++++++++++\n");
+        printf("\n---------------n");
             
     }
     else{
@@ -265,6 +266,51 @@ void print_message(TPCANMsg received){
     }
 }
 
+void print_vectorMessage(vector<msgRecu> get){
+
+    uint32_t result = -1;
+
+    printf("\n+++++++++DEBUT LISTE+++++++++\n");
+    for(msgRecu g : get){
+        //Si ce n'est pas un message renvoyé aprés ecriture
+        if(!g.isConfirmReception){
+            printf("\n---------------\n");
+            printf("Index : 0x%hhx-%hhx | Sub-Index : 0x%hhx\n", g.index>>8, g.index, g.subIndex);
+
+            switch(g.taille){
+                case R_1B :
+                    //1 octet
+                    printf("Message de 1 octet\n");
+                    printf("Data hexa : 0x%hhx\n", g.valData);
+                    printf("Data deci : %d", g.valData);
+                    break;
+
+                case R_2B :
+                    //2 octets
+                    printf("Message de 2 octets\n");
+                    printf("Data hexa : 0x%hhx|%hhx\n", (g.valData>>8) , g.valData);
+                    printf("Data deci : %d", g.valData);
+                    break;
+
+                case R_4B :
+                    //4 octets
+                    printf("Message de 4 octets\n");
+                    printf("Data hexa : 0x%hhx|%hhx|%hhx|%hhx\n",(g.valData>>24) ,(g.valData>>16) ,(g.valData>>8) , g.valData);
+                    printf("Data decimal : %d", g.valData); 
+                    break;
+                    
+                default : 
+                    printf("Erreur taille du message\n");
+            }
+            printf("\n---------------\n");
+                
+        }
+        else{
+            printf("Message confirmation de Index : 0x%hhx-%hhx | Sub-Index : 0x%hhx\n", g.index>>8, g.index, g.subIndex);
+        }
+    }
+    printf("\n+++++++++FIN LISTE+++++++++\n\n");
+}
 
 /**
  * @brief Met le message en entrée dans une struct msgRecu
@@ -286,16 +332,19 @@ msgRecu get_message(TPCANMsg received){
         switch(received.DATA[0]){
             case R_1B :
                 //1 octet
+                msgRecup.taille = R_1B;
                 result = received.DATA[4];
                 break;
 
             case R_2B :
                 //2 octets
+                msgRecup.taille = R_2B;
                 result = (received.DATA[5]<<8) | received.DATA[4];
                 break;
 
             case R_4B :
                 //4 octets
+                msgRecup.taille = R_4B;
                 result = (received.DATA[7]<<24) | (received.DATA[6]<<16)| (received.DATA[5]<<8) | received.DATA[4];
                 break;
                 
@@ -337,7 +386,7 @@ vector<msgRecu> read_message(){
         if(result != PCAN_ERROR_QRCVEMPTY)
         {
             //Un message et reçue et on l'affiche :
-            print_message(received);
+            //print_message(received);
             get.push_back(get_message(received));
         }
     //Jusqu'a ce que la file d'attente soit vide
@@ -548,12 +597,12 @@ void set_relativePosition(int id, int uInput){
  * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
  */
 void control_allPosition(){
-    float wantPosX, wantPosY;
+    double wantPosX, wantPosY;
     float deplacementIncrX, deplacementIncrY;
     int nb_points;
-    int val_motor1 = 400; 
+    int val_motor1 = 0; 
     int val_motor2 = 0;
-    int val_motor3 = 400;
+    int val_motor3 = 0;
     uint8_t quit = 1;
 
     do{
@@ -582,6 +631,8 @@ void control_allPosition(){
 
 
         for(int i=0; i<nb_points; i++){
+            printf("En %d points\n", nb_points);
+
             //On incrémente en fonction du nombre de points
             if(nb_points<=ptsDeplacementX){
                 wantPosX += deplacementIncrX;
@@ -594,7 +645,7 @@ void control_allPosition(){
             //Calcul des positions voulue avec wantPosX et wantPosY :
             
             //===========================================================A FAIRE
-            
+            increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
             //===========================================================FIN
 
             //Envoie des données dans les moteurs
@@ -651,7 +702,7 @@ void checkEndTarget(uint8_t* status, int motId){
             }
         }
         else{
-            printf("Message en question : %lx\n", g.valData);
+            //printf("Message en question : %lx\n", g.valData);
         }
     }
 }
@@ -727,7 +778,7 @@ void checkAllEndTarget(){
  * @param wantPosX (float) : Position voulue en X 
  * @param wantPosY (float) : Position voulue en Y
  */
-void get_manualWantedPos(float *wantPosX , float *wantPosY){
+void get_manualWantedPos(double *wantPosX , double *wantPosY){
     cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
     do{
         cout << "Donnez une valeur X entre 0 et 800mm\n";
@@ -929,12 +980,65 @@ void writePos_fichier(){
     myfile.close();
 }
 
+//==================QUIT==================
+
+void shutdown(int id){
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+    usleep(1000);
+
+    //8 -> Shutdown 
+    msg_data[0] = 0b0110;
+    msg_data[1] = 0b0000;
+    
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    usleep(1000);
+
+    init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
+    print_vectorMessage( get_value(msg) );
+}
+
+void shutdown_all(){
+   shutdown(COBID_CAN1_SDO);
+   //=================================A REMETTRE
+   //shutdown(COBID_CAN2_SDO);
+   //=================================A REMETTRE
+   shutdown(COBID_CAN3_SDO);
+}
+
+void signal_callback_handler(int signum) {
+   shutdown_all();
+
+   printf("\nTerminate program\n");
+   // Terminate program
+   exit(signum);
+}
+
 //==================MAIN==================
 int main(){
+
+    //Init l'interrupt du control + C
+    signal(SIGINT, signal_callback_handler);
+
     //Initialisation du PEAK
     initialise_CAN_USB();
 
-    readPos_fichier();
+
+    //==========================++A REMETTRE
+    //readPos_fichier();
+    //==========================++A REMETTRE
+    
     mode_selection(COBID_CAN3_SDO);
-    writePos_fichier();
+
+    //Fin du programme
+    shutdown_all();
+    //==========================++A REMETTRE
+    //writePos_fichier();
+    //==========================++A REMETTRE
+
+
 }
