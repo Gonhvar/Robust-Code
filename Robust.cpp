@@ -122,6 +122,7 @@ void initialise_CAN_USB(){
     //Init Dynamique des valeurs de channel et de baudrate 
     channelUsed = find_channel();
     //Remettre a la fin
+
     //baudrateUsed = init_baudrate_doc();
 
     if (CAN_Initialize(channelUsed, baudrateUsed) == PCAN_ERROR_OK)
@@ -230,6 +231,7 @@ void print_message(TPCANMsg received){
         switch(received.DATA[0]){
             case R_1B :
                 //1 octet
+                printf("Message de 1 octet\n");
                 result = received.DATA[4];
                 printf("Data hexa : 0x%hhx\n",received.DATA[4]);
                 printf("Data deci : %d", result);
@@ -237,15 +239,17 @@ void print_message(TPCANMsg received){
 
             case R_2B :
                 //2 octets
+                printf("Message de 2 octets\n");
                 result = (received.DATA[5]<<8) | received.DATA[4];
-                printf("Data hexa : 0x%hhx | %hhx\n",received.DATA[5],received.DATA[4]);
+                printf("Data hexa : 0x%hhx|%hhx\n",received.DATA[5],received.DATA[4]);
                 printf("Data deci : %d", result);
                 break;
 
             case R_4B :
                 //4 octets
+                printf("Message de 4 octets\n");
                 result = (received.DATA[7]<<24) | (received.DATA[6]<<16)| (received.DATA[5]<<8) | received.DATA[4];
-                printf("Data hexa : 0x%hhx | %hhx | %hhx | %hhx\n",received.DATA[7],received.DATA[6],received.DATA[5],received.DATA[4]);
+                printf("Data hexa : 0x%hhx|%hhx|%hhx|%hhx\n",received.DATA[7],received.DATA[6],received.DATA[5],received.DATA[4]);
                 printf("Data decimal : %d", result); 
                 break;
                 
@@ -274,7 +278,7 @@ msgRecu get_message(TPCANMsg received){
     msgRecu msgRecup;
 
     msgRecup.id = received.ID % 16;
-    msgRecup.index = 8 << received.DATA[2] && received.DATA[1];
+    msgRecup.index = (received.DATA[2]*256) + received.DATA[1];
     msgRecup.subIndex = received.DATA[3];
     
     //Si ce n'est pas un message renvoyé aprés ecriture
@@ -335,8 +339,6 @@ vector<msgRecu> read_message(){
             //Un message et reçue et on l'affiche :
             print_message(received);
             get.push_back(get_message(received));
-            //printf("Le message est arrivé en %dms\n", timestamp.millis);
-            //printf("msg type : %hhx\n", received.MSGTYPE);
         }
     //Jusqu'a ce que la file d'attente soit vide
     }while((result & PCAN_ERROR_QRCVEMPTY) != PCAN_ERROR_QRCVEMPTY);
@@ -395,6 +397,7 @@ vector<msgRecu> get_value(TPCANMsg toSend){
 
 //==================POSITION MODE==================
 
+//Init
 /**
  * @brief Réinitialise la position absolue du moteur (calibration)
  * 
@@ -482,6 +485,7 @@ bool init_asservissementPosition(int id){
     init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
+    //Si tout va bien
     return false;
 }
 
@@ -537,37 +541,61 @@ void set_relativePosition(int id, int uInput){
 
 }
 
-
+//Main du position Mode
 /**
  * @brief Fonction contrôlant toutes les EPOS4 en fonction de leur position relative
  * 
  * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
  */
-void control_allPosition(int nb_points){
+void control_allPosition(){
     float wantPosX, wantPosY;
-    float deplacementX, deplacementY;
-    int val_motor1, val_motor2, val_motor3;
+    float deplacementIncrX, deplacementIncrY;
+    int nb_points;
+    int val_motor1 = 400; 
+    int val_motor2 = 0;
+    int val_motor3 = 400;
     uint8_t quit = 1;
 
     do{
         //On va chercher la valeur voulue
         get_manualWantedPos(&wantPosX, &wantPosY);
 
-        //On recupére la valeur de chaque incrémentation
-        deplacementX = (wantPosX-abs_posX)/nb_points;
-        deplacementY = (wantPosY-abs_posY)/nb_points;
+        //On recupére la valeur en points de chaque incrémentation en mm
+        int ptsDeplacementX = (wantPosX-abs_posX)*POINTS_PAR_MM;
+        int ptsDeplacementY = (wantPosY-abs_posY)*POINTS_PAR_MM;
 
+        //On trouve quel est le deplacement le plus long selon X ou Y
+        if(ptsDeplacementX>ptsDeplacementY){
+            nb_points=ptsDeplacementX;
+        }
+        else{
+            nb_points=ptsDeplacementY;
+        }
+
+        //Calcul du deplacement à chaque incrémentation
+        deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS;
+        deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS;
+
+        //Valeur de base de la position de l'effecteur
         wantPosX = abs_posX;
         wantPosY = abs_posY;
 
+
         for(int i=0; i<nb_points; i++){
             //On incrémente en fonction du nombre de points
-            wantPosX += deplacementX;
-            wantPosY +=deplacementY;
+            if(nb_points<=ptsDeplacementX){
+                wantPosX += deplacementIncrX;
+            }
+
+            if(nb_points<=ptsDeplacementY){
+                wantPosY +=deplacementIncrY;
+            }
             
             //Calcul des positions voulue avec wantPosX et wantPosY :
             
-            //===========================================A FAIRE
+            //===========================================================A FAIRE
+            
+            //===========================================================FIN
 
             //Envoie des données dans les moteurs
             set_relativePosition(COBID_CAN1_SDO, val_motor1);
@@ -586,7 +614,7 @@ void control_allPosition(int nb_points){
     }while(quit!= 0);
 }
 
-
+//Autres 
 /**
  * @brief Regarde si le moteur id à atteint sa position demandé et revois status pour le vérifier
  * 
@@ -601,14 +629,15 @@ void checkEndTarget(uint8_t* status, int motId){
     init_msg_SDO(&msg, motId, R, STATUSWORD, 0x00, msg_data);
     get = get_value(msg);
 
+    printf("Pour la carte N°%d\n", get[0].id);
     for(msgRecu g : get){
         //Bit 10 = Target Reached
-        if(g.index == STATUSWORD && ((g.valData>>9 & 0b1)==1)){
+        if(g.index == STATUSWORD && ( ((g.valData>>10)%2) == 1)){
             switch(g.id){
                 case 1 :
                     *status = *status | 0b001;
                     break;
-                
+
                 case 2 :
                     *status = *status | 0b010;
                     break;
@@ -621,6 +650,9 @@ void checkEndTarget(uint8_t* status, int motId){
                     cout << "Erreur sur le COB-ID\n";
             }
         }
+        else{
+            printf("Message en question : %lx\n", g.valData);
+        }
     }
 }
 
@@ -630,16 +662,23 @@ void checkEndTarget(uint8_t* status, int motId){
  */
 void checkAllEndTarget(){
     uint8_t status = 0;
-    
-    
-    //Demander à chaques cartes
-    checkEndTarget(&status, COBID_ALL_CAN_SDO);
-    
+
     //Check si toutes les cartes sont arrivé à destination sinon recheck
     while(status != 0b111){
         switch(status){
+            case 0b000 :
+                //Demander à chaques cartes
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                //=============================================A REMETTRE
+                //checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
+                checkEndTarget(&status, COBID_CAN3_SDO);
+                break;
+
             case 0b001 :
-                checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
+                //checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
@@ -650,7 +689,9 @@ void checkAllEndTarget(){
 
             case 0b100 :
                 checkEndTarget(&status, COBID_CAN1_SDO);
-                checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
+                //checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
                 break;
 
             case 0b011 :
@@ -658,7 +699,13 @@ void checkAllEndTarget(){
                 break;
 
             case 0b101 :
-                checkEndTarget(&status, COBID_CAN2_SDO);
+                //===============================A ENLEVER A LA FIN
+                printf("On est bien arrivé à la fin\n");
+                status = 0b111;
+                //===============================A ENLEVER A LA FIN
+                //=============================================A REMETTRE
+                //checkEndTarget(&status, COBID_CAN2_SDO);
+                //=============================================A REMETTRE
                 break;
 
             case 0b110 :
@@ -671,6 +718,8 @@ void checkAllEndTarget(){
     }
 }
 
+
+
 //--------------MANUEL---------------
 /**
  * @brief Demande a l'utilisateur quelle position pour l'effecteur il souhaite 
@@ -681,14 +730,14 @@ void checkAllEndTarget(){
 void get_manualWantedPos(float *wantPosX , float *wantPosY){
     cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
     do{
-        cout << "Donnez une valeur X entre 0 et 400mm\n";
+        cout << "Donnez une valeur X entre 0 et 800mm\n";
         cin >> *wantPosX;
-    }while(!(0 > *wantPosX > 400));
-
+    }while((0 > *wantPosX || *wantPosX> 800));
+    
     do{
-        cout << "Donnez une valeur Y entre 0 et 240mm\n";
+        cout << "Donnez une valeur Y entre 0 et 600mm\n";
         cin >> *wantPosY;
-    }while(!(0 > *wantPosY > 240));
+    }while((0 > *wantPosY || *wantPosX> 600));
 }
 
 /**
@@ -809,7 +858,7 @@ void set_torque(int id){
  */
 void mode_selection(int id){
     int userInput = 8;
-    bool wait;
+    bool wait = true;
     do{
         printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Controle en Vitesse\n");
         cin >> userInput;
@@ -822,10 +871,12 @@ void mode_selection(int id){
 
         case 1 : 
             //Initialisation de tous les cartes EPOS
-            wait = init_asservissementPosition(COBID_ALL_CAN_SDO);
+            init_asservissementPosition(COBID_CAN1_SDO);
+            //wait = init_asservissementPosition(COBID_CAN2_SDO);
+            wait = init_asservissementPosition(COBID_CAN3_SDO);
             while(wait);
             //Control en position de toutes les cartes EPOS
-            control_allPosition(100);
+            control_allPosition();
             break;
 
         case 2 : 
@@ -841,13 +892,13 @@ void mode_selection(int id){
     }
 }
 
-//==================AUTRES==================
+//==================ECRITURE/LECTURE FICHIER==================
 
 /**
  * @brief Va lire la valeur de Pos absolue dans le fichier pos_effecteur.txt
  * 
  */
-void readPos(){
+void readPos_fichier(){
     string s;
     string delimiter = "|";
     ifstream myfile;
@@ -871,7 +922,7 @@ void readPos(){
  * @brief Ecrit la valeur locale de la position de l'effecteur dans le fichier pos_effecteur.txt
  * 
  */
-void writePos(){
+void writePos_fichier(){
     ofstream myfile;
     myfile.open ("pos_effecteur.txt");
     myfile << abs_posX << '|' << abs_posY << endl;
@@ -883,7 +934,7 @@ int main(){
     //Initialisation du PEAK
     initialise_CAN_USB();
 
-    readPos();
+    readPos_fichier();
     mode_selection(COBID_CAN3_SDO);
-    writePos();
+    writePos_fichier();
 }

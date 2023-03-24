@@ -9,6 +9,9 @@
 
 using namespace std;
 
+#define POINTS_PAR_MM 10
+#define MM_PAR_POINTS 1/10
+
 //Definition des COBID
 #define COBID_ALL_CAN_SDO 0x600
 #define COBID_CAN1_SDO 0x601 
@@ -35,9 +38,9 @@ using namespace std;
 
 typedef struct tagmsgRecu{
   uint8_t id;
-  uint16_t index;
-  uint8_t subIndex;
-  uint32_t valData;
+  uint32_t index;
+  uint16_t subIndex;
+  uint64_t valData;
   //True si le message en question n'est qu'un message de confirmation de reception
   bool isConfirmReception;
 }msgRecu; 
