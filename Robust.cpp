@@ -720,16 +720,12 @@ void checkAllEndTarget(){
             case 0b000 :
                 //Demander à chaques cartes
                 checkEndTarget(&status, COBID_CAN1_SDO);
-                //=============================================A REMETTRE
-                //checkEndTarget(&status, COBID_CAN2_SDO);
-                //=============================================A REMETTRE
+                checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
             case 0b001 :
-                //=============================================A REMETTRE
-                //checkEndTarget(&status, COBID_CAN2_SDO);
-                //=============================================A REMETTRE
+                checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 break;
 
@@ -740,9 +736,7 @@ void checkAllEndTarget(){
 
             case 0b100 :
                 checkEndTarget(&status, COBID_CAN1_SDO);
-                //=============================================A REMETTRE
-                //checkEndTarget(&status, COBID_CAN2_SDO);
-                //=============================================A REMETTRE
+                checkEndTarget(&status, COBID_CAN2_SDO);
                 break;
 
             case 0b011 :
@@ -750,13 +744,7 @@ void checkAllEndTarget(){
                 break;
 
             case 0b101 :
-                //===============================A ENLEVER A LA FIN
-                printf("On est bien arrivé à la fin\n");
-                status = 0b111;
-                //===============================A ENLEVER A LA FIN
-                //=============================================A REMETTRE
-                //checkEndTarget(&status, COBID_CAN2_SDO);
-                //=============================================A REMETTRE
+                checkEndTarget(&status, COBID_CAN2_SDO);
                 break;
 
             case 0b110 :
@@ -857,7 +845,7 @@ void init_Torque(int id){
  * 
  * @param id (int) : COB-ID à spécifier
  */
-void set_torque(int id){
+void set_manual_torque(int id){
 
     uint32_t userInput = 1;
     uint32_t userInput2 = 1;
@@ -899,6 +887,24 @@ void set_torque(int id){
 }
 
 
+void set_torque(uint32_t userInput, int id){
+
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+    init_Torque(id);
+
+    msg_data[0] = 0;
+    msg_data[1] = 0;
+    init_msg_SDO(&msg, id, W_2B, TORQUE_OFFSET, 0x00, msg_data);
+    write_message(msg);
+
+    msg_data[0] = userInput>>8;
+    msg_data[1] = userInput;
+    init_msg_SDO(&msg, id, W_2B, TARGET_TORQUE, 0x00, msg_data);
+    write_message(msg);
+}
 
 //==================MENU==================
 
@@ -911,7 +917,7 @@ void mode_selection(int id){
     int userInput = 8;
     bool wait = true;
     do{
-        printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Controle en Vitesse\n");
+        printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Test Control\n");
         cin >> userInput;
     }while(userInput>3);
 
@@ -923,7 +929,7 @@ void mode_selection(int id){
         case 1 : 
             //Initialisation de tous les cartes EPOS
             init_asservissementPosition(COBID_CAN1_SDO);
-            //wait = init_asservissementPosition(COBID_CAN2_SDO);
+            init_asservissementPosition(COBID_CAN2_SDO);
             wait = init_asservissementPosition(COBID_CAN3_SDO);
             while(wait);
             //Control en position de toutes les cartes EPOS
@@ -931,11 +937,15 @@ void mode_selection(int id){
             break;
 
         case 2 : 
-            set_torque(id);
+            set_manual_torque(id);
             break;
 
         case 3 :
-            printf("Pas encore implémenté\n");
+            set_torque(10, COBID_CAN1_SDO);
+            //init_asservissementPosition(COBID_CAN2_SDO);
+            //wait = init_asservissementPosition(COBID_CAN3_SDO);
+            //while(wait);
+            //control_allPosition();
             break;
 
         default : 
