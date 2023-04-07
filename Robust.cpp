@@ -835,8 +835,17 @@ void init_Torque(int id){
     //Controlword (Shutdown)
     msg_data[0] = 0x00;
     msg_data[1] = 0x06;
-    init_msg_SDO(&msg, id, W_1B, CONTROLWORD, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
+
+    usleep(1000);
+
+    //Controlword (Switch On & Enable)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
 }
 
 
@@ -944,7 +953,7 @@ void mode_selection(int id){
             set_torque(10, COBID_CAN1_SDO);
             //init_asservissementPosition(COBID_CAN2_SDO);
             //wait = init_asservissementPosition(COBID_CAN3_SDO);
-            //while(wait);
+            cin >> wait;
             //control_allPosition();
             break;
 
@@ -1014,9 +1023,7 @@ void shutdown(int id){
 
 void shutdown_all(){
    shutdown(COBID_CAN1_SDO);
-   //=================================A REMETTRE
-   //shutdown(COBID_CAN2_SDO);
-   //=================================A REMETTRE
+   shutdown(COBID_CAN2_SDO);
    shutdown(COBID_CAN3_SDO);
 }
 
