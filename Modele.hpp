@@ -8,14 +8,14 @@
 
 //position des moteurs depuis l'origine en [mm]
 //moteur A : en haut
-#define MOTEUR_A_POSITION_X 400 //[!] A CHANGER
-#define MOTEUR_A_POSITION_Y 600 //[!] A CHANGER
+#define MOTEUR_A_POSITION_X 399 //[!] A CHANGER
+#define MOTEUR_A_POSITION_Y 629 //[!] A CHANGER
 //moteur B : en bas a gauche
-#define MOTEUR_B_POSITION_X 0 //[!] A CHANGER
-#define MOTEUR_B_POSITION_Y 0 //[!] A CHANGER
+#define MOTEUR_B_POSITION_X 790 //[!] A CHANGER
+#define MOTEUR_B_POSITION_Y 120 //[!] A CHANGER
 //moteur C : en bas a droite
-#define MOTEUR_C_POSITION_X 800 //[!] A CHANGER
-#define MOTEUR_C_POSITION_Y 0 //[!] A CHANGER
+#define MOTEUR_C_POSITION_X 10 //[!] A CHANGER
+#define MOTEUR_C_POSITION_Y 119 //[!] A CHANGER
 
 #define RAYON_ROUE 9 //"[mm]"
 #define RAPPORT_REDUCTON (16.0/60.0)//  entree/sortie
@@ -25,9 +25,9 @@
 
 //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
 //A regler grace a une fonction specifique
-#define OFFSET_CABLE_A 100 //[!] A CHANGER
-#define OFFSET_CABLE_B 100 //[!] A CHANGER
-#define OFFSET_CABLE_C 100 //[!] A CHANGER
+#define OFFSET_CABLE_A 390 //[!] A CHANGER
+#define OFFSET_CABLE_B 400 //[!] A CHANGER
+#define OFFSET_CABLE_C 390 //[!] A CHANGER
 
 typedef struct _Point
 {

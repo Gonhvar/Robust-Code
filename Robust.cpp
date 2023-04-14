@@ -17,7 +17,7 @@ TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
 
 //Position de l'effecteur (absolue)
-float abs_posX = 400, abs_posY = 300;
+float abs_posX = 400, abs_posY = 250;
 
 //================INITIALISATION_PEAK================
 
@@ -480,6 +480,10 @@ void def_positionAbsolue(int id){
     init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
+    //======================================== REVOIR
+    sleep(1);
+    //======================================== REVOIR
+
     //Controlword (Halt homing)
     msg_data[0] = 0x01;
     msg_data[1] = 0x1F;
@@ -500,14 +504,12 @@ bool init_asservissementPosition(int id){
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
-    def_positionAbsolue(id);
-
     //---------Modes of operation
     msg_data[0] = 0x01; //profil position mode
     init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
     write_message(msg);
 
-    //---------Set parameter : fait avec EPOSSTUDIO
+    //---------Set parameter : fait avec EPOS STUDIO
     //
     //
     //---------Enable device
@@ -558,6 +560,56 @@ void set_relativePosition(int id, int uInput){
     init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
     write_message(msg);
 
+    //Controlword (relative position)
+    msg_data[0] = 0;
+    msg_data[1] = 0x5F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    //Attente obligé 
+    usleep(1000);
+    
+    //Controlword (New Position)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+}
+
+
+void set_absolutePosition(int id, int uInput){
+
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+    if(uInput>0xFFFF){ 
+        uInput = 0xFFFF;
+    }
+
+    //printf("uInput n°%d : %hhx\n %d\n",id, uInput, uInput);
+    
+    //Target position
+    //On limite à 2 Bytes
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x00;
+    msg_data[2] = 0x0;//(uInput>>8)%256;
+    msg_data[3] = uInput;
+
+    //printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
+    //ATTENTION : W_4B EST ESSENTIEL
+    init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
+    write_message(msg);
+
+
+    //ControlWord (absolute position)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x1F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    usleep(1000);
+
     //Controlword (New Position)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
@@ -565,20 +617,6 @@ void set_relativePosition(int id, int uInput){
     write_message(msg);
 
     //Attente obligé 
-    usleep(1000);
-
-    //Controlword (relative position)
-    msg_data[0] = 0;
-    msg_data[1] = 0x5F;
-    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
-    write_message(msg);
-
-    /*//ABSOLUE
-    msg_data[0] = 0x00;
-    msg_data[1] = 0x1F;
-    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
-    write_message(msg);*/
-
 }
 
 //Main du position Mode
@@ -920,6 +958,31 @@ void set_torque(uint16_t userInput, int id){
     write_message(msg);
 }
 
+
+void mise_en_position0_effecteur(){
+    init_Torque(COBID_CAN1_SDO);
+    init_Torque(COBID_CAN2_SDO);
+    init_Torque(COBID_CAN3_SDO);
+    sleep(1);
+    
+    //On tire vers le haut les moteurs
+    set_torque(200, COBID_CAN1_SDO);
+    set_torque(200, COBID_CAN2_SDO);
+    set_torque(200, COBID_CAN3_SDO);
+
+    sleep(3);
+
+    //On shutdown les moteurs
+    shutdown(COBID_CAN1_SDO);
+    shutdown(COBID_CAN2_SDO);
+    shutdown(COBID_CAN3_SDO);
+
+    //On definie leur position actuelle comme le point 0 de leur position absolue
+    def_positionAbsolue(COBID_CAN1_SDO);
+    def_positionAbsolue(COBID_CAN2_SDO);
+    def_positionAbsolue(COBID_CAN3_SDO);
+}
+
 //==================MENU==================
 
 /**
@@ -931,9 +994,9 @@ void mode_selection(){
     int userInput = 8;
     bool wait = true;
     do{
-        printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Test Control\n");
+        printf("Quel mode voulez vous lancer ?\n 0.Quitter\n 1.Controle en Position\n 2.Controle en Couple\n 3.Set Position absolue\n4.Test Control \n");
         cin >> userInput;
-    }while(userInput>3);
+    }while(userInput>4);
 
     switch (userInput){
         case 0 : 
@@ -947,6 +1010,13 @@ void mode_selection(){
             init_asservissementPosition(COBID_CAN2_SDO);
             wait = init_asservissementPosition(COBID_CAN3_SDO);
             while(wait);
+
+            //Mise en position 0 (definie dans le case 3)
+            set_absolutePosition(COBID_CAN1_SDO, 0);
+            set_absolutePosition(COBID_CAN2_SDO, 0);
+            set_absolutePosition(COBID_CAN3_SDO, 0);
+
+
             //Control en position de toutes les cartes EPOS
             control_allPosition();
             break;
@@ -962,13 +1032,13 @@ void mode_selection(){
             break;
 
         case 3 :
-            //TEST 
-            init_Torque(COBID_CAN2_SDO);
-            init_Torque(COBID_CAN3_SDO);
-            sleep(1);
-            
-            set_torque(200, COBID_CAN2_SDO);
-            set_torque(200, COBID_CAN3_SDO);
+            //Def position Absolue de tous les moteurs
+            mise_en_position0_effecteur();
+            break;
+
+        case 4 :
+            //FONCTIONS TEST 
+            //Initialisation de tous les cartes EPOS
 
             cin >> wait;
             //control_allPosition();
@@ -1037,8 +1107,8 @@ void shutdown(int id){
 
     usleep(1000);
 
-    init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
-    print_vectorMessage( get_value(msg) );
+    /*init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
+    print_vectorMessage( get_value(msg) );*/
 
 }
 
@@ -1046,6 +1116,8 @@ void shutdown_all(){
    shutdown(COBID_CAN1_SDO);
    shutdown(COBID_CAN2_SDO);
    shutdown(COBID_CAN3_SDO);
+
+   cout << "fin du programme" << endl;
 }
 
 void signal_callback_handler(int signum) {

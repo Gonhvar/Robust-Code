@@ -59,3 +59,4 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, ui
 void get_manualWantedPos(double *wantPosX , double *wantPosY);
 void checkEndTarget(uint8_t* status, int id);
 void checkAllEndTarget();
+oid shutdown(int id);
