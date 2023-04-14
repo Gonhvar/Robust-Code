@@ -903,12 +903,12 @@ void set_torque(uint16_t userInput, int id){
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
-    init_Torque(id);
-
+    /*
     msg_data[0] = 0x00;
     msg_data[1] = 0x00;
     init_msg_SDO(&msg, id, W_2B, TORQUE_OFFSET, 0x00, msg_data);
-    write_message(msg);
+    write_message(msg);*/
+
 
     std::cout << "UserInput : " << userInput << endl;
     printf("userinput : %hhx\n", userInput);
@@ -941,6 +941,7 @@ void mode_selection(){
             break;
 
         case 1 : 
+            //CONTROL EN POSITION
             //Initialisation de tous les cartes EPOS
             init_asservissementPosition(COBID_CAN1_SDO);
             init_asservissementPosition(COBID_CAN2_SDO);
@@ -951,13 +952,24 @@ void mode_selection(){
             break;
 
         case 2 : 
-            set_manual_torque(COBID_CAN3_SDO);
+            //CONTROL EN COUPLE
+            init_Torque(COBID_CAN2_SDO);
+            init_Torque(COBID_CAN3_SDO);
+            sleep(1);
+            
+            set_torque(200, COBID_CAN2_SDO);
+            set_torque(200, COBID_CAN3_SDO);
             break;
 
         case 3 :
-            set_torque(100, COBID_CAN3_SDO);
-            //init_asservissementPosition(COBID_CAN2_SDO);
-            //wait = init_asservissementPosition(COBID_CAN3_SDO);
+            //TEST 
+            init_Torque(COBID_CAN2_SDO);
+            init_Torque(COBID_CAN3_SDO);
+            sleep(1);
+            
+            set_torque(200, COBID_CAN2_SDO);
+            set_torque(200, COBID_CAN3_SDO);
+
             cin >> wait;
             //control_allPosition();
             break;
@@ -1012,7 +1024,7 @@ void shutdown(int id){
     bzero(msg_data, 4);
 
 
-    printf("Carte N°%d\n", id);
+    //printf("Carte N°%d\n", id);
 
     usleep(1000);
 
@@ -1027,7 +1039,7 @@ void shutdown(int id){
 
     init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
     print_vectorMessage( get_value(msg) );
-    
+
 }
 
 void shutdown_all(){
