@@ -2,6 +2,7 @@
 #define MODELE
 
 #include "math.h"
+#include "stdio.h"
 
 // ---CONSTANTES-----------------------------
 
@@ -17,7 +18,7 @@
 #define MOTEUR_C_POSITION_Y 0 //[!] A CHANGER
 
 #define RAYON_ROUE 9 //"[mm]"
-#define RAPPORT_REDUCTON (16/60)//  entree/sortie
+#define RAPPORT_REDUCTON (16.0/60.0)//  entree/sortie
 #define INCREMENTS_PAR_TOUR 512
 
 #define PI 3.14159
@@ -28,7 +29,17 @@
 #define OFFSET_CABLE_B 100 //[!] A CHANGER
 #define OFFSET_CABLE_C 100 //[!] A CHANGER
 
+typedef struct _Point
+{
+    int x; //en mm
+    int y; //en mm
+} Point;
 
+typedef struct _PointD
+{
+    double x; //en mm
+    double y; //en mm
+} PointD;
 
 
 
@@ -56,13 +67,16 @@ void _model_position_inverse(double pos_X_effecteur, double pos_Y_effecteur, dou
 double _size_cable_to_increment(double size_cable);
 
 
-void increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,int *increment_moteur_A, int *increment_moteur_B, int *increment_moteur_C);
+void increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,double *increment_moteur_A, double *increment_moteur_B, double *increment_moteur_C);
 
+//renvoie l'intersection entre deux cercles la plus proche du point C
+//tous les dimensions sont en mm
+// [!] depracated
+Point _intersection_cercles_proche_point(Point centreA, double rayonA,  double rayonB, Point centreB, Point pointC);
 
+double distance(PointD p1, PointD p2);
 
-
-
-
+int intersection_cercles(PointD centre1, double rayon1, PointD centre2, double rayon2, PointD *intersection1, PointD *intersection2);
 
 
 #endif
