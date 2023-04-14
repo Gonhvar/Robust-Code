@@ -12,7 +12,7 @@
 using namespace std;
 
 #define POINTS_PAR_MM 10
-#define MM_PAR_POINTS (1/10)
+#define MM_PAR_POINTS 0.1
 
 //Definition des COBID
 #define COBID_ALL_CAN_SDO 0x600

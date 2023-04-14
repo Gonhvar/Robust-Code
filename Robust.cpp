@@ -553,7 +553,7 @@ void set_relativePosition(int id, int uInput){
         uInput = 0xFFFF;
     }
 
-    printf("uInput : %hhx\n %d\n", uInput, uInput);
+    //printf("uInput n°%d : %hhx\n %d\n",id, uInput, uInput);
     
     //Target position
     //On limite à 2 Bytes
@@ -562,7 +562,7 @@ void set_relativePosition(int id, int uInput){
     msg_data[2] = 0x0;//(uInput>>8)%256;
     msg_data[3] = uInput;
 
-    printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
+    //printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
     //ATTENTION : W_4B EST ESSENTIEL
     init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
     write_message(msg);
@@ -603,7 +603,7 @@ void control_allPosition(){
     int val_motor1 = 0; 
     int val_motor2 = 0;
     int val_motor3 = 0;
-    uint8_t quit = 1;
+    bool quit = true;
 
     do{
         //On va chercher la valeur voulue
@@ -615,23 +615,26 @@ void control_allPosition(){
 
         //On trouve quel est le deplacement le plus long selon X ou Y
         if(ptsDeplacementX>ptsDeplacementY){
-            nb_points=ptsDeplacementX;
+            nb_points = abs(ptsDeplacementX);
         }
         else{
-            nb_points=ptsDeplacementY;
+            nb_points = abs(ptsDeplacementY);
         }
 
+        printf("MAX POINTS : %d points\n", nb_points);
+        printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
+        
         //Calcul du deplacement à chaque incrémentation
-        deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS;
-        deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS;
+        deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
+        deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
 
         //Valeur de base de la position de l'effecteur
         wantPosX = abs_posX;
         wantPosY = abs_posY;
 
-
+        std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
+        printf("En %d points\n", nb_points);
         for(int i=0; i<nb_points; i++){
-            printf("En %d points\n", nb_points);
 
             //On incrémente en fonction du nombre de points
             if(nb_points<=ptsDeplacementX){
@@ -645,24 +648,30 @@ void control_allPosition(){
             //Calcul des positions voulue avec wantPosX et wantPosY :
             
             //===========================================================A FAIRE
+            std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
             increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
+
+            std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
             //===========================================================FIN
 
             //Envoie des données dans les moteurs
-            set_relativePosition(COBID_CAN1_SDO, val_motor1);
+            //set_relativePosition(COBID_CAN1_SDO, val_motor1);
             set_relativePosition(COBID_CAN2_SDO, val_motor2);
             set_relativePosition(COBID_CAN3_SDO, val_motor3);
             
+
+            //================================ A METTRE EN CHILD PROCESS
             //Attente que tous les moteurs soit arrivé 
             checkAllEndTarget();
+            //================================ A METTRE EN CHILD PROCESS
             
             //On met à jour la position de l'effecteur
             abs_posX = wantPosX;
             abs_posY = wantPosY;
         }
-        cout << "0. Pour quitter";
+        cout << "0. Pour quitter\n";
         cin >> quit;
-    }while(quit!= 0);
+    }while(quit);
 }
 
 //Autres 
@@ -680,7 +689,7 @@ void checkEndTarget(uint8_t* status, int motId){
     init_msg_SDO(&msg, motId, R, STATUSWORD, 0x00, msg_data);
     get = get_value(msg);
 
-    printf("Pour la carte N°%d\n", get[0].id);
+    //printf("Pour la carte N°%d\n", get[0].id);
     for(msgRecu g : get){
         //Bit 10 = Target Reached
         if(g.index == STATUSWORD && ( ((g.valData>>10)%2) == 1)){
@@ -719,9 +728,14 @@ void checkAllEndTarget(){
         switch(status){
             case 0b000 :
                 //Demander à chaques cartes
+<<<<<<< HEAD
+                //checkEndTarget(&status, COBID_CAN1_SDO);
+=======
                 checkEndTarget(&status, COBID_CAN1_SDO);
+>>>>>>> 3773c7e5780733ca4f74aebdbe41f361273dbfb4
                 checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
+                status = status | 0b100;
                 break;
 
             case 0b001 :
@@ -950,7 +964,11 @@ void mode_selection(int id){
             break;
 
         case 3 :
+<<<<<<< HEAD
+            set_torque(10, COBID_CAN3_SDO);
+=======
             set_torque(10, COBID_CAN1_SDO);
+>>>>>>> 3773c7e5780733ca4f74aebdbe41f361273dbfb4
             //init_asservissementPosition(COBID_CAN2_SDO);
             //wait = init_asservissementPosition(COBID_CAN3_SDO);
             cin >> wait;
@@ -1018,7 +1036,7 @@ void shutdown(int id){
     usleep(1000);
 
     init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
-    print_vectorMessage( get_value(msg) );
+    //print_vectorMessage( get_value(msg) );
 }
 
 void shutdown_all(){
