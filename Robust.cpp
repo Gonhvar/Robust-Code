@@ -30,8 +30,6 @@ TPCANHandle find_channel(){
     TPCANHandle channelsToCheck[] = { PCAN_USBBUS1, PCAN_USBBUS2, PCAN_USBBUS3, PCAN_USBBUS4, PCAN_USBBUS5, PCAN_USBBUS6
      , PCAN_USBBUS7, PCAN_USBBUS8, PCAN_USBBUS9, PCAN_USBBUS10, PCAN_USBBUS11, PCAN_USBBUS12, PCAN_USBBUS13, PCAN_USBBUS14
      , PCAN_USBBUS15, PCAN_USBBUS16};
-    DWORD condition, activate;
-    TPCANStatus status;
 
     DWORD channelsCount;
     if (CAN_GetValue(PCAN_NONEBUS, PCAN_ATTACHED_CHANNELS_COUNT, &channelsCount, 4) == PCAN_ERROR_OK)
@@ -728,11 +726,7 @@ void checkAllEndTarget(){
         switch(status){
             case 0b000 :
                 //Demander à chaques cartes
-<<<<<<< HEAD
                 //checkEndTarget(&status, COBID_CAN1_SDO);
-=======
-                checkEndTarget(&status, COBID_CAN1_SDO);
->>>>>>> 3773c7e5780733ca4f74aebdbe41f361273dbfb4
                 checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 status = status | 0b100;
@@ -918,13 +912,15 @@ void set_torque(uint32_t userInput, int id){
 
     init_Torque(id);
 
-    msg_data[0] = 0;
-    msg_data[1] = 0;
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x00;
     init_msg_SDO(&msg, id, W_2B, TORQUE_OFFSET, 0x00, msg_data);
     write_message(msg);
 
+    std::cout << "UserInput : " << userInput << endl;
     msg_data[0] = userInput>>8;
     msg_data[1] = userInput;
+    std::cout << "msg_data[0] : " << msg_data << " msg_data[1] :" << msg_data[1] << endl;
     init_msg_SDO(&msg, id, W_2B, TARGET_TORQUE, 0x00, msg_data);
     write_message(msg);
 }
@@ -964,11 +960,7 @@ void mode_selection(int id){
             break;
 
         case 3 :
-<<<<<<< HEAD
             set_torque(10, COBID_CAN3_SDO);
-=======
-            set_torque(10, COBID_CAN1_SDO);
->>>>>>> 3773c7e5780733ca4f74aebdbe41f361273dbfb4
             //init_asservissementPosition(COBID_CAN2_SDO);
             //wait = init_asservissementPosition(COBID_CAN3_SDO);
             cin >> wait;
