@@ -114,8 +114,6 @@ TPCANBaudrate init_baudrate_doc(){
  */
 void initialise_CAN_USB(){
     
-    char strMsg[256];
-    TPCANStatus result;
     DWORD receptionState;
 
     //Init Dynamique des valeurs de channel et de baudrate 
@@ -266,8 +264,6 @@ void print_message(TPCANMsg received){
 
 void print_vectorMessage(vector<msgRecu> get){
 
-    uint32_t result = -1;
-
     printf("\n+++++++++DEBUT LISTE+++++++++\n");
     for(msgRecu g : get){
         //Si ce n'est pas un message renvoyé aprés ecriture
@@ -370,9 +366,6 @@ vector<msgRecu> read_message(){
     TPCANMsg received;
     TPCANStatus result;
     TPCANTimestamp timestamp;
-    char strMsg[256];
-
-    uint8_t i=0;
     vector<msgRecu> get;
 
     do
@@ -622,7 +615,7 @@ void control_allPosition(){
         printf("MAX POINTS : %d points\n", nb_points);
         printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
         
-        //Calcul du deplacement à chaque incrémentation
+        //Calcul du deplacement à chaque incrémentation [mm]
         deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
         deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
 
@@ -635,11 +628,11 @@ void control_allPosition(){
         for(int i=0; i<nb_points; i++){
 
             //On incrémente en fonction du nombre de points
-            if(nb_points<=ptsDeplacementX){
+            if(i<= abs(ptsDeplacementX)){
                 wantPosX += deplacementIncrX;
             }
 
-            if(nb_points<=ptsDeplacementY){
+            if(i<=abs(ptsDeplacementY)){
                 wantPosY +=deplacementIncrY;
             }
             
@@ -775,14 +768,14 @@ void checkAllEndTarget(){
  * @param wantPosY (float) : Position voulue en Y
  */
 void get_manualWantedPos(double *wantPosX , double *wantPosY){
-    cout << "Effecteur au niveau de X : " << abs_posX << " et Y : " << abs_posY <<"\n";  
+    std::cout << "Position effecteur actuelle en X : " << abs_posX << " et en Y : " << abs_posY << std::endl;  
     do{
-        cout << "Donnez une valeur X entre 0 et 800mm\n";
+        cout << "Donnez une valeur X entre 0 et 800mm" << std::endl;
         cin >> *wantPosX;
     }while((0 > *wantPosX || *wantPosX> 800));
     
     do{
-        cout << "Donnez une valeur Y entre 0 et 600mm\n";
+        cout << "Donnez une valeur Y entre 0 et 600mm" << std::endl;
         cin >> *wantPosY;
     }while((0 > *wantPosY || *wantPosX> 600));
 }
@@ -904,7 +897,7 @@ void set_manual_torque(int id){
 }
 
 
-void set_torque(uint32_t userInput, int id){
+void set_torque(uint16_t userInput, int id){
 
     TPCANMsg msg;
     uint8_t msg_data[4];
@@ -918,9 +911,11 @@ void set_torque(uint32_t userInput, int id){
     write_message(msg);
 
     std::cout << "UserInput : " << userInput << endl;
+    printf("userinput : %hhx\n", userInput);
     msg_data[0] = userInput>>8;
     msg_data[1] = userInput;
-    std::cout << "msg_data[0] : " << msg_data << " msg_data[1] :" << msg_data[1] << endl;
+
+    printf("msg_data[0] : %hhx, msg_data[1] : %hhx\n", msg_data[0],msg_data[1]);
     init_msg_SDO(&msg, id, W_2B, TARGET_TORQUE, 0x00, msg_data);
     write_message(msg);
 }
@@ -932,7 +927,7 @@ void set_torque(uint32_t userInput, int id){
  * 
  * @param id (int) : COB-ID à spécifier
  */
-void mode_selection(int id){
+void mode_selection(){
     int userInput = 8;
     bool wait = true;
     do{
@@ -956,11 +951,11 @@ void mode_selection(int id){
             break;
 
         case 2 : 
-            set_manual_torque(id);
+            set_manual_torque(COBID_CAN3_SDO);
             break;
 
         case 3 :
-            set_torque(10, COBID_CAN3_SDO);
+            set_torque(100, COBID_CAN3_SDO);
             //init_asservissementPosition(COBID_CAN2_SDO);
             //wait = init_asservissementPosition(COBID_CAN3_SDO);
             cin >> wait;
@@ -1016,6 +1011,9 @@ void shutdown(int id){
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
+
+    printf("Carte N°%d\n", id);
+
     usleep(1000);
 
     //8 -> Shutdown 
@@ -1028,7 +1026,8 @@ void shutdown(int id){
     usleep(1000);
 
     init_msg_SDO(&msg, id, R, STATUSWORD, 0x00, msg_data);
-    //print_vectorMessage( get_value(msg) );
+    print_vectorMessage( get_value(msg) );
+    
 }
 
 void shutdown_all(){
@@ -1059,7 +1058,7 @@ int main(){
     //readPos_fichier();
     //==========================++A REMETTRE
     
-    mode_selection(COBID_CAN3_SDO);
+    mode_selection();
 
     //Fin du programme
     shutdown_all();
