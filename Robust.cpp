@@ -19,6 +19,9 @@ TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
 //Position de l'effecteur (absolue)
 float abs_posX = 400, abs_posY = 250;
 
+
+
+
 //================INITIALISATION_PEAK================
 
 /**
@@ -53,6 +56,9 @@ TPCANHandle find_channel(){
                 //On renvois la premiére channel trouvé 
                 return channels[0].channel_handle;
             }
+        }
+        else {
+            exit(1);
         }
     }
     else{
@@ -437,6 +443,52 @@ vector<msgRecu> get_value(TPCANMsg toSend){
 
 //==================POSITION MODE==================
 
+/**
+ * fonction bloquante
+ * position en mm
+ * [!] A COMPLETER
+*/
+double read_position() {
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+    
+    init_msg_SDO(&msg, COBID_CAN3_SDO, R, 0x6064, 0x00, msg_data);
+
+        msg.DATA[0] = R;
+    write_message(msg);
+
+    //-------------------------------------------
+    usleep(1000);  //En micro-secondes
+    //-------------------------------------------
+
+    vector<msgRecu> get = read_message();
+    int increment =0;
+
+    for(msgRecu g : get) {
+        //Si ce n'est pas un message renvoyé aprés ecriture
+        if(!g.isConfirmReception){
+            switch(g.taille){
+                case R_4B :
+                    //4 octets
+                    increment=g.valData;
+                    break;
+                    
+                default : 
+                    printf("Erreur taille du message\n");
+            }
+            printf("\n---------------\n");
+                
+        }
+    }
+        
+
+    double position=increment-10000;
+
+
+    return position;
+}
+
+
 //Init
 /**
  * @brief Réinitialise la position absolue du moteur (calibration)
@@ -663,7 +715,17 @@ void control_allPosition(){
 
         std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
         printf("En %d points\n", nb_points);
+
+        // pour calcul fps
+        clock_t start_time= clock();clock_t end_time;
+        double fps;
+
+
         for(int i=0; i<nb_points; i++){
+
+
+
+
 
             //On incrémente en fonction du nombre de points
             if(i<= abs(ptsDeplacementX)){
@@ -697,6 +759,17 @@ void control_allPosition(){
             //On met à jour la position de l'effecteur
             abs_posX = wantPosX;
             abs_posY = wantPosY;
+
+            // calcul fps
+            end_time = clock();
+            fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+            fps=1/fps;
+            start_time = clock();
+            printf("Les fps sont : deplacements %f par secondes\n", fps);
+
+            printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
+            printf("\n");
+
         }
         cout << "0. Pour quitter\n";
         cin >> quit;
@@ -721,7 +794,7 @@ void checkEndTarget(uint8_t* status, int motId){
     //printf("Pour la carte N°%d\n", get[0].id);
     for(msgRecu g : get){
         //Bit 10 = Target Reached
-        if(g.index == STATUSWORD && ( ((g.valData>>10)%2) == 1)){
+        if(g.index == STATUSWORD && ( ((g.valData>>10)%2) == 1)){ //on regarde le bit numero 10
             switch(g.id){
                 case 1 :
                     *status = *status | 0b001;
@@ -887,6 +960,21 @@ void init_Torque(int id){
 
 }
 
+void set_force(double force, int id) {
+    
+
+    int target_torque = 1000 * (double)(RAPPORT_REDUCTON * RAYON_ROUE*force)/(double)MOTOR_RATED_TORQUE;
+    if (target_torque<0) {
+        target_torque+=65536;
+    }
+    
+
+
+    set_torque(target_torque,id);
+
+
+}
+
 
 /**
  * @brief Demande à l'utilisateur un Couple et le met sur le moteur
@@ -948,7 +1036,7 @@ void set_torque(uint16_t userInput, int id){
     write_message(msg);*/
 
 
-    std::cout << "UserInput : " << userInput << endl;
+    std::cout << "UserInput : " << userInput << endl; // en pour 1000 , negatif 2**16-nombre
     printf("userinput : %hhx\n", userInput);
     msg_data[0] = userInput>>8;
     msg_data[1] = userInput;
@@ -998,6 +1086,15 @@ void mode_selection(){
         cin >> userInput;
     }while(userInput>4);
 
+    // pour teste
+    vector<msgRecu> get;
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+    int k=0;
+    double position;
+    double position_prec=0;
+    double vitesse;
+
     switch (userInput){
         case 0 : 
             printf("Quitte\n"); 
@@ -1037,11 +1134,66 @@ void mode_selection(){
             break;
 
         case 4 :
-            //FONCTIONS TEST 
-            //Initialisation de tous les cartes EPOS
+            // FONCTIONS TEST 
 
-            cin >> wait;
-            //control_allPosition();
+            init_Torque(COBID_CAN3_SDO);
+
+
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     printf("%f\n",read_position()) ;
+            // }
+
+            //Mise en position 0 (definie dans le case 3)
+            set_absolutePosition(COBID_CAN1_SDO, 0);
+            set_absolutePosition(COBID_CAN2_SDO, 0);
+            set_absolutePosition(COBID_CAN3_SDO, 0);
+
+
+
+            while (true) {
+                usleep(10000);
+                position = read_position();
+                vitesse = position - position_prec;
+                printf("position : %f\n",-position/500);
+                printf("vitesse : %f\n",-vitesse/100);
+                set_force(-position/200-vitesse/200,COBID_CAN3_SDO);
+                position_prec=position;
+            }
+
+
+
+            
+            
+            
+            
+            // while (true)
+            // {
+
+            //     k++;
+            //     printf("envoie de %d\n",k*10);
+            //     set_torque(k*10, COBID_CAN3_SDO);
+            //     getchar();
+            // }
+            
+
+            
+            
+
+
+
+
+            // LECTURE
+            // init_msg_SDO(&msg, COBID_CAN3_SDO, R, 0x3001, 0x01, msg_data);
+            // get = get_value(msg);
+
+
+            // print_vectorMessage(get);
+
+
+
+            printf("fin test\n");
+
             break;
 
         default : 
@@ -1127,6 +1279,9 @@ void signal_callback_handler(int signum) {
    // Terminate program
    exit(signum);
 }
+
+
+
 
 //==================MAIN==================
 int main(){

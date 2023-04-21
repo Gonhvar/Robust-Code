@@ -8,6 +8,7 @@
 #include <fstream>
 #include <signal.h>
 #include <cstdlib>
+#include <time.h>
 
 using namespace std;
 
@@ -38,6 +39,10 @@ using namespace std;
 #define HOMING_METHOD 0x6098
 #define TORQUE_OFFSET 0x60B2
 
+
+// CONSTANTES MOTEUR
+#define MOTOR_RATED_TORQUE 75.7
+
 typedef struct tagmsgRecu{
   uint8_t id;
   uint16_t index;
@@ -59,4 +64,8 @@ void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length,uint8_t index_1, ui
 void get_manualWantedPos(double *wantPosX , double *wantPosY);
 void checkEndTarget(uint8_t* status, int id);
 void checkAllEndTarget();
-oid shutdown(int id);
+void shutdown(int id);
+void set_torque(uint16_t userInput, int id);
+// force en N
+// on doit appeler init_Torque(COBID_CANX_SDO) avant
+void set_force(double force, int id);
