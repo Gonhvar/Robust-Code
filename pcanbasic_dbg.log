@@ -1,2 +1,6 @@
-PCAN-USB fw 8.4.0 has an update available and should be upgraded.
-PCAN-USB fw 8.4.0 is obsolete and should be upgraded.
+ERROR: failed to scan directory (errno=2) '/sys/class/pcan'
+ERROR: failed to open file (errno=2) '/sys/class/pcan/version'.
+ERROR: failed to scan directory (errno=2) '/sys/class/pcan'
+ERROR: failed to open file (errno=2) '/sys/class/pcan/version'.
+ERROR: failed to scan directory (errno=2) '/sys/class/pcan'
+ERROR: failed to open file (errno=2) '/sys/class/pcan/version'.
