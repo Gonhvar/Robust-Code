@@ -1,0 +1,13 @@
+https://wiki.qt.io/Building_Qt_5_from_Git#Getting_the_source_code
+
+
+
+commandes:
+
+git clone git://code.qt.io/qt/qt5.git
+
+cd qt5
+
+git checkout 5.12
+
+perl init-repository
