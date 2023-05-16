@@ -1284,26 +1284,26 @@ void signal_callback_handler(int signum) {
 
 
 //==================MAIN==================
-int main(){
+// int main(){
 
-    //Init l'interrupt du control + C
-    signal(SIGINT, signal_callback_handler);
+//     //Init l'interrupt du control + C
+//     signal(SIGINT, signal_callback_handler);
 
-    //Initialisation du PEAK
-    initialise_CAN_USB();
+//     //Initialisation du PEAK
+//     initialise_CAN_USB();
 
 
-    //==========================++A REMETTRE
-    //readPos_fichier();
-    //==========================++A REMETTRE
+//     //==========================++A REMETTRE
+//     //readPos_fichier();
+//     //==========================++A REMETTRE
     
-    mode_selection();
+//     mode_selection();
 
-    //Fin du programme
-    shutdown_all();
-    //==========================++A REMETTRE
-    //writePos_fichier();
-    //==========================++A REMETTRE
+//     //Fin du programme
+//     shutdown_all();
+//     //==========================++A REMETTRE
+//     //writePos_fichier();
+//     //==========================++A REMETTRE
 
 
-}
+// }
