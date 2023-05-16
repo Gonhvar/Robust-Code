@@ -1,7 +1,11 @@
 #include "InterfaceGraphique.hpp"
+#include "Rasberry.hpp"
+#include "ControlMoteur.hpp"
+#include "modele.hpp"
 
 
 #include <gtk/gtk.h>
+#include <thread>
 
 // // Callback function for the button
 // void on_button_clicked(GtkWidget *widget, gpointer data)
@@ -9,16 +13,23 @@
 //     g_print("Button clicked!\n");
 // }
 
+
+
 int main(int argc, char *argv[])
 {
 
 
-
-
-
-
-
     InterfaceGraphique interfaceGraphique(argc,argv);
+
+
+
+
+    printf("hey!\n");
+
+    interfaceGraphique.waitEnd();
+
+
+
 
 
 

@@ -1,5 +1,11 @@
-#ifndef MODELE
-#define MODELE
+#ifndef MODELE_
+#define MODELE_
+
+
+
+
+// /!\ DEPRECATED /!\   .
+
 
 #include "math.h"
 #include "stdio.h"
