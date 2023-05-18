@@ -1,7 +1,15 @@
 #include "ControlMoteur.hpp"
 #include <iostream>
 
+int ControlMoteur::nombreInstance =0;
+
 ControlMoteur::ControlMoteur() {
+    if (nombreInstance>0) {
+        throw std::runtime_error("ControlMoteur::ControlMoteur() -> impossible d'instancier plus d'une fois un ControlMoteur\n");
+    }
+    nombreInstance++;
+
+
     asservissement = POSITION;
     powerOn = false;
     controlMoteurThread = new std::thread(&ControlMoteur::runControlMoteur,this);

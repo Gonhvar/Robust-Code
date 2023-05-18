@@ -11,6 +11,7 @@ class InterfaceGraphique {
         Etat etat;
         GtkWidget *window;
         std::thread *gtkThread;
+        static int nombreInstance; //garantie qu'on instancie qu'une fois on utilise pas singleton patern car thread
 
         void initWindow();
 
@@ -20,9 +21,10 @@ class InterfaceGraphique {
         
 
 
+
     public :
         // lance l'interface dans un thread 
-        InterfaceGraphique(int argc, char *argv[]);
+        InterfaceGraphique();
 
         ~InterfaceGraphique();
 

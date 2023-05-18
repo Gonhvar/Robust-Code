@@ -9,6 +9,8 @@ class Rasberry {
     private :
         
         std::thread *rasberryThread;
+
+        static int nombreInstance; //garantie qu'on instancie qu'une fois, on utilise pas singleton patern car thread
         
         // [!] A IMPLEMENTER PAR OLIVIER
         // va etre lance dans un thread

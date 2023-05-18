@@ -1,9 +1,18 @@
 #include "InterfaceGraphique.hpp"
 #include <thread>
 
-InterfaceGraphique::InterfaceGraphique(int argc, char *argv[]) {
+
+int InterfaceGraphique::nombreInstance =0 ;
+
+InterfaceGraphique::InterfaceGraphique() {
+    if (nombreInstance>0) {
+        throw std::runtime_error("InterfaceGraphique::InterfaceGraphique() -> impossible d'instancier plus d'une fois une InterfaceGraphique\n");
+    }
+    nombreInstance++;
     etat = POSITION;
-    gtk_init(&argc, &argv);
+
+    //gtk_init(&argc, &argv);
+    gtk_init(nullptr, nullptr);
 
     initWindow();
 
