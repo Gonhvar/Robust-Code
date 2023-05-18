@@ -36,3 +36,5 @@ InterfaceGraphique::~InterfaceGraphique() {
     
     //gtk_main_quit(); -> genere une erreur bizarrement
 }
+
+

@@ -20,13 +20,20 @@ int main(int argc, char *argv[])
 
 
     InterfaceGraphique interfaceGraphique(argc,argv);
+    ControlMoteur controlMoteur;
+    Rasberry rasberry;
 
 
 
 
     printf("hey!\n");
 
+
     interfaceGraphique.waitEnd();
+    /controlMoteur.waitEnd();
+    rasberry.waitEnd();
+
+
 
 
 

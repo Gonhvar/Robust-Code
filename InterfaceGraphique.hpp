@@ -14,6 +14,7 @@ class InterfaceGraphique {
 
         void initWindow();
 
+        // va etre lance dans un thread
         void runGtkMain();
 
         
