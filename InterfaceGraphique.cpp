@@ -15,6 +15,7 @@ InterfaceGraphique::InterfaceGraphique(Rasberry *rasberry, ControlMoteur *contro
     }
     nombreInstance++;
     asservissement = POSITION;
+    powerOn=false;
 
     this->rasberry = rasberry;
     this->controlMoteur = controlMoteur;
@@ -22,6 +23,8 @@ InterfaceGraphique::InterfaceGraphique(Rasberry *rasberry, ControlMoteur *contro
     gtk_init(nullptr, nullptr);
 
     initWindow();
+
+    
 
     
 
@@ -48,12 +51,40 @@ void InterfaceGraphique::runGtkMain() {
     gtk_main();
 }
 
+void InterfaceGraphique::addCSS(GtkWidget* window) {
+    // Création d'un fournisseur de style GTK
+    GtkCssProvider* provider = gtk_css_provider_new();
+
+    // Chargement du fichier CSS contenant les styles
+    gtk_css_provider_load_from_data(provider,
+        " * { font-size: 15pt; }", // Définition du style de la taille de police (14 points)
+        -1,
+        NULL
+    );
+
+    // Application du fournisseur de style à la fenêtre
+    GtkStyleContext* context = gtk_widget_get_style_context(window);
+    gtk_style_context_add_provider(context,
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+
+}
+
+void InterfaceGraphique::setMargin(GtkWidget* widget, int margin) {
+    gtk_widget_set_margin_start(widget, margin);
+    gtk_widget_set_margin_end(widget, margin);
+    gtk_widget_set_margin_top(widget, margin);
+    gtk_widget_set_margin_bottom(widget, margin);
+
+}
+
 void InterfaceGraphique::initWindow() {
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Projet Robust");
     gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
     g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
-
+    addCSS(window); // Changer la taille de police
 
 
 
@@ -86,7 +117,9 @@ void InterfaceGraphique::initWigets() {
 
 
     head = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    setMargin(head,20);
     gtk_box_pack_start(GTK_BOX(main), head, FALSE, FALSE, 0);
+
 
     body = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
     gtk_box_pack_start(GTK_BOX(main), body, FALSE, FALSE, 0);
@@ -99,17 +132,23 @@ void InterfaceGraphique::initWigets() {
 
     // bouton change mode :
     changeModeButton = gtk_button_new_with_label("");
+    // egalement reparti dans head :
+    gtk_widget_set_hexpand(changeModeButton, TRUE);
+    gtk_widget_set_halign(changeModeButton, GTK_ALIGN_FILL);
     gtk_box_pack_start(GTK_BOX(head), changeModeButton, FALSE, FALSE, 0);
-
     g_signal_connect(changeModeButton, "clicked", G_CALLBACK(callBack_ChangeModeButton), this);
 
     // data :
     
     recordDataBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    // egalement reparti dans head :
+    gtk_widget_set_hexpand(recordDataBox, TRUE);
+    gtk_widget_set_halign(recordDataBox, GTK_ALIGN_FILL);
     gtk_box_pack_start(GTK_BOX(head), recordDataBox, FALSE, FALSE, 0);
 
     // position :
     positionBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    setMargin(positionBox,20);
     gtk_box_pack_start(GTK_BOX(recordDataBox), positionBox, FALSE, FALSE, 0);
     positionXLabel = gtk_label_new("X");
     gtk_container_add(GTK_CONTAINER(positionBox), positionXLabel);
@@ -118,6 +157,7 @@ void InterfaceGraphique::initWigets() {
 
     // force :
     forceBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    setMargin(forceBox,20);
     gtk_box_pack_start(GTK_BOX(recordDataBox), forceBox, FALSE, FALSE, 0);
     forceXLabel = gtk_label_new("Fx");
     gtk_container_add(GTK_CONTAINER(forceBox), forceXLabel);
@@ -126,13 +166,26 @@ void InterfaceGraphique::initWigets() {
 
     // moment :
     momentBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    setMargin(momentBox,20);
     gtk_box_pack_start(GTK_BOX(recordDataBox), momentBox, FALSE, FALSE, 0);
     momentXLabel = gtk_label_new("Mx");
     gtk_container_add(GTK_CONTAINER(momentBox), momentXLabel);
     momentYLabel = gtk_label_new("My");
     gtk_container_add(GTK_CONTAINER(momentBox), momentYLabel);
 
-    // [!] rajouter la mise a jour des infos
+
+    // bouton change Power :
+    changePowerButton = gtk_button_new_with_label("Moteur hors tension");
+    // egalement reparti dans head :
+    gtk_widget_set_hexpand(changePowerButton, TRUE);
+    gtk_widget_set_halign(changePowerButton, GTK_ALIGN_FILL);
+    gtk_box_pack_start(GTK_BOX(head), changePowerButton, FALSE, FALSE, 0);
+    g_signal_connect(changePowerButton, "clicked", G_CALLBACK(callBack_ChangePowerButton), this);
+
+
+
+
+
 
 
 
@@ -168,7 +221,7 @@ InterfaceGraphique::~InterfaceGraphique() {
 
 std::string InterfaceGraphique::getModeName() {
     if (asservissement == POSITION) {
-        return "Position";
+        return "Position  ";
     }
     if (asservissement== HAPTIQUE) {
         return "Haptique";
@@ -199,8 +252,22 @@ void InterfaceGraphique::changeMode() {
 }
 
 
+void InterfaceGraphique::changePower() {
+    if (powerOn) {
+        powerOn=false;
+        controlMoteur->setPowerToOff();
+        gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
+        printf("InterfaceGraphique::Debug : power OFF\n");
+    } else {
+        powerOn=true;
+        controlMoteur->setPowerToOn();
+        gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
+        printf("InterfaceGraphique::Debug : power ON\n");
+    }   
+}
+
+
 void InterfaceGraphique::rafraichir() {
-    std::cout << "rafraichir" <<std::endl;
     double positionX=0;
     double positionY=0;
 
@@ -277,3 +344,7 @@ void InterfaceGraphique::callBack_ChangeModeButton(GtkWidget* button, gpointer d
 }
 
 
+void InterfaceGraphique::callBack_ChangePowerButton(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+    interfaceGraphique->changePower();
+}

@@ -31,7 +31,7 @@ void Rasberry::runRasberry() {
 
 
 void Rasberry::getCouples(double &coupleX, double &coupleY) {
-    std::cout << "Rasberry::getCouples" << std::endl;
+    //std::cout << "Rasberry::getCouples" << std::endl;
     coupleX=this->coupleX;
     coupleY=this->coupleY;
 }

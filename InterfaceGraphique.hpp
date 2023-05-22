@@ -21,6 +21,9 @@ class InterfaceGraphique {
 
         enum Asservissement {POSITION,HAPTIQUE};
         Asservissement asservissement;
+
+        bool powerOn;
+
         GtkWidget *window;
         std::thread *gtkThread;
         guint timeout_id; // permet de nettoyer le rafraichissement
@@ -64,11 +67,19 @@ class InterfaceGraphique {
         GtkWidget *momentXLabel;
         GtkWidget *momentYLabel;
 
+        GtkWidget *changePowerButton;
+
 
 
 
 
         // ---BODY DE LA PAGE--- :
+
+        // contenu change en fonction du mode haptique ou position
+        GtkWidget *instructionZone;
+
+        // pour position
+
 
         GtkWidget* drawing_area;
 
@@ -98,6 +109,9 @@ class InterfaceGraphique {
         // met a jour l'affichage de la data
         void updateData(double positionX,double positionY, double forceX, double froceY, double coupleX, double coupleY);
 
+        static void addCSS(GtkWidget* window);
+
+        static void setMargin(GtkWidget* widget, int margin);
 
 
     public :
@@ -113,6 +127,8 @@ class InterfaceGraphique {
 
         void changeMode();
 
+        void changePower();
+
     static gboolean callbackWrapper_Rafraichir(gpointer data);
 
     // ENSEMBLE CALLBACK :
@@ -121,7 +137,7 @@ class InterfaceGraphique {
 
     static void callBack_ChangeModeButton(GtkWidget* button, gpointer data);
 
-
+    static void callBack_ChangePowerButton(GtkWidget* button, gpointer data);
 
 
 };

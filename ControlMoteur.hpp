@@ -47,11 +47,18 @@ class ControlMoteur {
 
         Asservissement getAsservissement() {return asservissement;}
 
-        // [!] A COMPLETER PAR OLIVIER
         // switch entre allume et eteint les moteurs
         void changePower();
 
+        // [!] A COMPLETER PAR OLIVIER
+        void setPowerToOff();
+
+        // [!] A COMPLETER PAR OLIVIER
+        void setPowerToOn();
+
         bool getPowerOn() {return powerOn;}
+
+        
 
         // [!] A COMPLETER PAR OLIVIER
         // dit d'aller a l'effecteur d'aller en (positionX,positionY) en mm

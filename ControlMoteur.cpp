@@ -41,7 +41,7 @@ void ControlMoteur::waitEnd() {
 }
 
 void ControlMoteur::getForce(double &forceX, double &forceY) {
-    std::cout << "ControlMoteur::getForce" << std::endl;
+    //std::cout << "ControlMoteur::getForce" << std::endl;
     forceX = this->forceX;
     forceY = this->forceY;
 
@@ -70,21 +70,32 @@ void ControlMoteur::setAsservissementToPOSTION() {
 
 
 void ControlMoteur::getPosition(double &positionX, double &positionY) {
-    std::cout << "ControlMoteur::getPosition" << std::endl;
+    //std::cout << "ControlMoteur::getPosition" << std::endl;
     positionX = this->positionX;
     positionY = this->positionY;
 }
 
 void ControlMoteur::changePower() {
     if (powerOn) {
-        powerOn=false;
-        printf("Debug : moteur eteint\n");
-        // [!] A COMPLETER PAR OLIVIER
+        setPowerToOff();
+
     } else {
-        powerOn=true;
-        printf("Debug : moteur allume\n");
-        // [!] A COMPLETER PAR OLIVIER
+        setPowerToOn();
     }
+}
+
+void ControlMoteur::setPowerToOff() {
+    // [!] A COMPLETER PAR OLIVIER
+    powerOn=false;
+
+    printf("ControlMoteur : moteur eteint\n");
+}
+
+void ControlMoteur::setPowerToOn() {
+    // [!] A COMPLETER PAR OLIVIER
+    powerOn=true;
+
+    printf("ControlMoteur : moteur allume\n");
 }
 
 
