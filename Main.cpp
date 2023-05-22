@@ -107,6 +107,9 @@ int main(int argc, char** argv) {
   // Afficher tous les éléments de la fenêtre
   gtk_widget_show_all(window);
 
+  gtk_widget_destroy(entry);
+  
+
   // Démarrer la boucle principale de GTK
   gtk_main();
 
