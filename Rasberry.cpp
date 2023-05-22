@@ -9,12 +9,20 @@ Rasberry::Rasberry() {
         throw std::runtime_error("Rasberry::Rasberry -> impossible d'instancier plus d'une fois une Rasberry\n");
     }
     nombreInstance++;
-    // [!] A COMPLETER PAR OLIVIER
+
+    // [!] POUR TESTS :
+    coupleX = -0.1;
+    coupleY = -5.1;
+
 
     rasberryThread = new std::thread(&Rasberry::runRasberry,this);
 }
 
+// [!] A IMPLEMENTER PAR OLIVIER
 void Rasberry::runRasberry() {
+    // FAIRE ICI L'ASSERVISSEMENT ~100 Hz ?
+    // actualiser dans l'asservissement coupleX, coupleY
+
     while (true)
     {
         //printf("Debug : runRasberry\n");
@@ -22,15 +30,10 @@ void Rasberry::runRasberry() {
 }
 
 
-void Rasberry::getAngles(double &coupleX, double &coupleY) {
-    // [!] A IMPLEMENTER PAR OLIVIER
-    
-    // POUR TESTE :
-    coupleX = 10;
-    coupleY = 10;
-
-
-
+void Rasberry::getCouples(double &coupleX, double &coupleY) {
+    std::cout << "Rasberry::getCouples" << std::endl;
+    coupleX=this->coupleX;
+    coupleY=this->coupleY;
 }
 
 void Rasberry::waitEnd() {

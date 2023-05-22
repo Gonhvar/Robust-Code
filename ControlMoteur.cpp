@@ -12,11 +12,23 @@ ControlMoteur::ControlMoteur() {
 
     asservissement = POSITION;
     powerOn = false;
+
+    // [!] POUR TESTS :
+    this->forceX = 15;
+    this->forceY = -9.6;
+    this->positionX = 5 ;
+    this->positionY =-3.2 ;
+
+
     controlMoteurThread = new std::thread(&ControlMoteur::runControlMoteur,this);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::runControlMoteur() {
+    // FAIRE ICI L'ASSERVISSEMENT ~100 Hz ?
+    // actualiser dans l'asservissement forceX, forceY, positionX, positionY
+
+
     while (true)
     {
         //printf("Debug : ControlMoteur\n");
@@ -29,11 +41,9 @@ void ControlMoteur::waitEnd() {
 }
 
 void ControlMoteur::getForce(double &forceX, double &forceY) {
-    // [!] A IMPLEMENTER PAR OLIVIER
-    
-    // POUR TESTE :
-    forceX = 15;
-    forceY = 15;
+    std::cout << "ControlMoteur::getForce" << std::endl;
+    forceX = this->forceX;
+    forceY = this->forceY;
 
 }
 
@@ -60,11 +70,9 @@ void ControlMoteur::setAsservissementToPOSTION() {
 
 
 void ControlMoteur::getPosition(double &positionX, double &positionY) {
-    // [!] A IMPLEMENTER PAR OLIVIER
-    
-    // POUR TESTE :
-    positionX = 34;
-    positionY = 35;
+    std::cout << "ControlMoteur::getPosition" << std::endl;
+    positionX = this->positionX;
+    positionY = this->positionY;
 }
 
 void ControlMoteur::changePower() {

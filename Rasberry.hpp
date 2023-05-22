@@ -12,6 +12,10 @@ class Rasberry {
 
         static int nombreInstance; //garantie qu'on instancie qu'une fois, on utilise pas singleton patern car thread
         
+        float coupleX; // N.mm
+        float coupleY; // Nmm
+
+
         // [!] A IMPLEMENTER PAR OLIVIER
         // va etre lance dans un thread
         void runRasberry();
@@ -21,9 +25,9 @@ class Rasberry {
         // [!] A IMPLEMENTER PAR OLIVIER
         Rasberry();
 
-        // [!] A IMPLEMENTER PAR OLIVIER
+
         // affecte a coupleX et coupeY le couple engendree par la sonde sur l'effecteur en N.mm
-        void getAngles(double &coupleX, double &coupeY);
+        void getCouples(double &coupleX, double &coupeY);
 
         // fonction blocante qui attend que le thread se finisse
         // /!\ appeler qu'une fois

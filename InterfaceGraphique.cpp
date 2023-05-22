@@ -3,6 +3,9 @@
 #include "ControlMoteur.hpp"
 #include "Rasberry.hpp"
 
+#include <sstream>
+#include <iomanip>
+
 
 int InterfaceGraphique::nombreInstance =0 ;
 
@@ -28,8 +31,11 @@ InterfaceGraphique::InterfaceGraphique(Rasberry *rasberry, ControlMoteur *contro
 
 
 
-  // Afficher tous les éléments de la fenêtre
-  gtk_widget_show_all(window);
+    // Afficher tous les éléments de la fenêtre
+    gtk_widget_show_all(window);
+
+    // planifier le rafraichissement
+    timeout_id = g_timeout_add(PERIODE_RAFRAICHISSEMENT, InterfaceGraphique::callbackWrapper_Rafraichir, this);
 
 
 
@@ -95,7 +101,7 @@ void InterfaceGraphique::initWigets() {
     changeModeButton = gtk_button_new_with_label("");
     gtk_box_pack_start(GTK_BOX(head), changeModeButton, FALSE, FALSE, 0);
 
-    g_signal_connect(changeModeButton, "clicked", G_CALLBACK(InterfaceGraphique_callBack_ChangeModeButton), this);
+    g_signal_connect(changeModeButton, "clicked", G_CALLBACK(callBack_ChangeModeButton), this);
 
     // data :
     
@@ -155,7 +161,7 @@ void InterfaceGraphique::waitEnd() {
 
 
 InterfaceGraphique::~InterfaceGraphique() {
-    
+    g_source_remove(timeout_id); 
     //gtk_main_quit(); -> genere une erreur bizarrement
 }
 
@@ -193,10 +199,77 @@ void InterfaceGraphique::changeMode() {
 }
 
 
-// ENSEMBLE CALLBACK :
+void InterfaceGraphique::rafraichir() {
+    std::cout << "rafraichir" <<std::endl;
+    double positionX=0;
+    double positionY=0;
+
+    double forceX=0;
+    double forceY=0;
+
+    double coupleX=0;
+    double coupleY=0;
+
+
+    controlMoteur->getPosition(positionX,positionY);
+    controlMoteur->getForce(forceX,forceY);
+    rasberry->getCouples(coupleX,coupleY);
+
+
+    updateData(positionX,positionY,forceX,forceY,coupleX,coupleY);
+
+
+}
+
+
+void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double froceY, double coupleX, double coupleY) {
+    int nombreDecimal = 2;
+
+    // position :
+
+    std::ostringstream valeur;
+    valeur << std::fixed << std::setprecision(nombreDecimal) << "X : " << positionX << " mm";
+    gtk_label_set_text(GTK_LABEL(positionXLabel),valeur.str().c_str());
+
+
+//     positionBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+//     gtk_box_pack_start(GTK_BOX(recordDataBox), positionBox, FALSE, FALSE, 0);
+//     positionXLabel = gtk_label_new("X");
+//     gtk_container_add(GTK_CONTAINER(positionBox), positionXLabel);
+//     positionYLabel = gtk_label_new("Y");
+//     gtk_container_add(GTK_CONTAINER(positionBox), positionYLabel);
+
+//     // force :
+//     forceBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+//     gtk_box_pack_start(GTK_BOX(recordDataBox), forceBox, FALSE, FALSE, 0);
+//     forceXLabel = gtk_label_new("Fx");
+//     gtk_container_add(GTK_CONTAINER(forceBox), forceXLabel);
+//     forceYLabel = gtk_label_new("Fy");
+//     gtk_container_add(GTK_CONTAINER(forceBox), forceYLabel);
+
+//     // moment :
+//     momentBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+//     gtk_box_pack_start(GTK_BOX(recordDataBox), momentBox, FALSE, FALSE, 0);
+//     momentXLabel = gtk_label_new("Mx");
+//     gtk_container_add(GTK_CONTAINER(momentBox), momentXLabel);
+//     momentYLabel = gtk_label_new("My");
+//     gtk_container_add(GTK_CONTAINER(momentBox), momentYLabel);
+}
+
+
+gboolean InterfaceGraphique::callbackWrapper_Rafraichir(gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+    interfaceGraphique->rafraichir();
+    return G_SOURCE_CONTINUE;
+}
+
+
+
+
+// --- ENSEMBLE CALLBACK --- :
 
 // Fonction de callback pour le signal "clicked"
-void InterfaceGraphique_callBack_ChangeModeButton(GtkWidget* button, gpointer data) {
+void InterfaceGraphique::callBack_ChangeModeButton(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
     interfaceGraphique->changeMode();
 }

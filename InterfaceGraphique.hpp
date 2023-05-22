@@ -14,6 +14,8 @@ class InterfaceGraphique {
         const static int WIDTH = 1080;
         const static int HEIGHT = 720;
 
+        const static int PERIODE_RAFRAICHISSEMENT = 30; // en ms
+
 
         // --- ATTRIBUTS ---
 
@@ -21,6 +23,7 @@ class InterfaceGraphique {
         Asservissement asservissement;
         GtkWidget *window;
         std::thread *gtkThread;
+        guint timeout_id; // permet de nettoyer le rafraichissement
         static int nombreInstance; //garantie qu'on instancie qu'une fois on utilise pas singleton patern car thread
 
         Rasberry *rasberry;
@@ -87,6 +90,14 @@ class InterfaceGraphique {
         // cree les widget pour un mode specifique et change les widgets en fonction du mode
         void setWigetForSpecificMode();
 
+        // rafraichi l'interface graphique (fait des appels a rasberry et controlMoteur)
+        // appele toutes les PERIODE_RAFRAICHISSEMENT
+        void rafraichir();
+
+
+        // met a jour l'affichage de la data
+        void updateData(double positionX,double positionY, double forceX, double froceY, double coupleX, double coupleY);
+
 
 
     public :
@@ -102,10 +113,13 @@ class InterfaceGraphique {
 
         void changeMode();
 
+    static gboolean callbackWrapper_Rafraichir(gpointer data);
+
+    // ENSEMBLE CALLBACK :
 
 
 
-
+    static void callBack_ChangeModeButton(GtkWidget* button, gpointer data);
 
 
 
@@ -113,6 +127,5 @@ class InterfaceGraphique {
 };
 
 
-// ENSEMBLE CALLBACK :
 
-void InterfaceGraphique_callBack_ChangeModeButton(GtkWidget* button, gpointer data);
+

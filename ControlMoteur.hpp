@@ -13,6 +13,15 @@ class ControlMoteur {
 
         static int nombreInstance; //garantie qu'on instancie qu'une fois, on utilise pas singleton patern car thread
 
+        float positionX; //mm
+        float positionY; //mm
+
+        float forceX; //N
+        float forceY; //N
+
+
+
+
         // [!] A IMPLEMENTER PAR OLIVIER
         // va etre lance dans un thread
         void runControlMoteur();
@@ -22,11 +31,9 @@ class ControlMoteur {
 
         ControlMoteur();
 
-        // [!] A IMPLEMENTER PAR OLIVIER
         // affecte a forceX et forceY la force engendree par les moteurs sur la sonde en N
         void getForce(double &forceX, double &forceY);
 
-        // [!] A IMPLEMENTER PAR OLIVIER
         // affecte a positionX et positionY la position de l'effecteur en mm
         void getPosition(double &positionX, double &positionY);
 
