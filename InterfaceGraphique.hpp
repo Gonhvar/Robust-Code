@@ -91,7 +91,7 @@ class InterfaceGraphique {
 
 
 
-        // ---BODY DE LA PAGE--- :
+        // --- BODY DE LA PAGE --- :
 
         // contenu change en fonction du mode haptique ou position
         GtkWidget *instructionZone; // conteneur vertiacla
@@ -116,6 +116,10 @@ class InterfaceGraphique {
 
 
         GtkWidget* drawing_area;
+
+        // --- HEAD DE LA PAGE ---:
+
+        GtkWidget* resetButton;
 
 
 
@@ -176,6 +180,8 @@ class InterfaceGraphique {
 
         void setViscosite(double viscosite);
 
+        void reset();
+
         void detruirePositonBox();
 
         void detruireHaptiqueBox();
@@ -219,6 +225,9 @@ class InterfaceGraphique {
 
     // mettre this en data
     static void callBack_SetViscositeButton(GtkWidget* button, gpointer data);
+
+    // mettre this en data
+    static void callBack_Reset(GtkWidget* button, gpointer data);
 
 
 

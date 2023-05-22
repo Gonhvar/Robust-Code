@@ -131,7 +131,7 @@ void InterfaceGraphique::initWigets() {
     gtk_box_pack_start(GTK_BOX(main), bottom, FALSE, FALSE, 0);
 
 
-    // HEAD 
+    // --- HEAD ---
 
     // bouton change mode :
     changeModeButton = gtk_button_new_with_label("");
@@ -193,8 +193,9 @@ void InterfaceGraphique::initWigets() {
 
 
 
-    // BODY
+    // --- BODY ---
 
+    // instructionZone
     instructionZone = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
     gtk_box_pack_start(GTK_BOX(body), instructionZone, FALSE, FALSE, 0);
 
@@ -202,11 +203,18 @@ void InterfaceGraphique::initWigets() {
 
 
 
-    // Adrawing area
+    // drawing area
     drawing_area = gtk_drawing_area_new();
     gtk_box_pack_start(GTK_BOX(body), drawing_area, TRUE, TRUE, 0);
     gtk_widget_set_size_request(drawing_area, WIDTH_DRAWING_AREA, HEIGHT_DRAWING_AREA);
 
+
+
+    // --- BOTTOM ---
+    resetButton= gtk_button_new_with_label("Etalloner");
+    gtk_box_pack_start(GTK_BOX(bottom), resetButton, FALSE, FALSE, 0);
+    g_signal_connect(resetButton, "clicked", G_CALLBACK(callBack_Reset), this);
+    
 
 
 
@@ -337,6 +345,9 @@ void InterfaceGraphique::setViscosite(double viscosite) {
     controlMoteur->setViscosite(viscosite);
 }
 
+void InterfaceGraphique::reset() {
+    controlMoteur->reset();
+}
 
 
 void InterfaceGraphique::rafraichir() {
@@ -429,7 +440,7 @@ void InterfaceGraphique::setupPositionWidget() {
     goToBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
     gtk_box_pack_start(GTK_BOX(instructionZone), goToBox, FALSE, FALSE, 0);
 
-    goToButton = gtk_button_new_with_label("Aller a : ");
+    goToButton = gtk_button_new_with_label("Aller à : ");
     gtk_box_pack_start(GTK_BOX(goToBox), goToButton, FALSE, FALSE, 0);
     g_signal_connect(goToButton, "clicked", G_CALLBACK(callBack_GoToButton), this);
 
@@ -446,7 +457,7 @@ void InterfaceGraphique::setupPositionWidget() {
     setVitesseBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
     gtk_box_pack_start(GTK_BOX(instructionZone), setVitesseBox, FALSE, FALSE, 0);
 
-    setVitesseButton = gtk_button_new_with_label("Definir la vitesse à :");
+    setVitesseButton = gtk_button_new_with_label("Définir la vitesse à :");
     gtk_box_pack_start(GTK_BOX(setVitesseBox), setVitesseButton, FALSE, FALSE, 0);
     g_signal_connect(setVitesseButton, "clicked", G_CALLBACK(callBack_SetVitesseButton), this);
 
@@ -568,6 +579,12 @@ void InterfaceGraphique::callBack_SetViscositeButton(GtkWidget* button, gpointer
     }
 
     interfaceGraphique->setViscosite(viscosite);
+}
+
+void InterfaceGraphique::callBack_Reset(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+     interfaceGraphique->reset();
 }
 
 void InterfaceGraphique::detruirePositonBox() {
