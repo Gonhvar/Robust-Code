@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include "Robust.hpp"
 #include <thread>
+#include <memory>
 
 class Rasberry;
 class ControlMoteur;
@@ -15,6 +16,20 @@ class InterfaceGraphique {
         const static int HEIGHT = 720;
 
         const static int PERIODE_RAFRAICHISSEMENT = 30; // en ms
+
+        // --- STRUCT ---
+
+        // permet d'envoyer des donnes aux callback
+        typedef struct DataForCallBack_
+        {
+            InterfaceGraphique *thisAttribut;
+            float data1;
+            float data2;
+        } DataForCallBack;
+
+        // intitialiser cet attribut pour envoyer des valeur aux callback
+        DataForCallBack dataForCallBack;
+        
 
 
         // --- ATTRIBUTS ---
@@ -46,6 +61,7 @@ class InterfaceGraphique {
         // fin de la page
         GtkWidget *bottom;
 
+
         // ---HEAD DE LA PAGE--- :
 
         GtkWidget *changeModeButton;
@@ -72,13 +88,28 @@ class InterfaceGraphique {
 
 
 
-
         // ---BODY DE LA PAGE--- :
 
         // contenu change en fonction du mode haptique ou position
-        GtkWidget *instructionZone;
+        GtkWidget *instructionZone; // conteneur vertiacla
 
-        // pour position
+        // pour position :
+        GtkWidget* goToBox;  
+        GtkWidget* goToButton;
+        GtkWidget* positionXEntry;
+        GtkWidget* positionYEntry;
+
+        GtkWidget* setVitesseBox;
+        GtkWidget* setVitesseButton;
+        GtkWidget* vitesseEntry;
+
+        // pour haptique
+        GtkWidget* setRaideurBox;
+        GtkWidget* setRaideur;
+        GtkWidget* raideurEntry;
+        GtkWidget* setViscositeBox;
+        GtkWidget* setViscosite;
+        GtkWidget* viscositeEntry;
 
 
         GtkWidget* drawing_area;
@@ -113,6 +144,19 @@ class InterfaceGraphique {
 
         static void setMargin(GtkWidget* widget, int margin);
 
+        // cree, met en place et initialise la section specifique aux widgets
+        // dans le corps de instructionZone
+        void setupPositionWidget();
+
+        void changeMode();
+
+        void changePower();
+
+        void goTo(float positonX, float positionY);
+
+        void setVitesse(float vitesse);
+
+        void detruirePositonBox();
 
     public :
         // lance l'interface dans un thread 
@@ -125,20 +169,24 @@ class InterfaceGraphique {
         // /!\ appeler qu'une fois
         void waitEnd();
 
-        void changeMode();
 
-        void changePower();
 
     static gboolean callbackWrapper_Rafraichir(gpointer data);
 
-    // ENSEMBLE CALLBACK :
+    // --- ENSEMBLE CALLBACK --- :
 
 
-
+    // mettre this en data
     static void callBack_ChangeModeButton(GtkWidget* button, gpointer data);
 
+    // mettre this en data
     static void callBack_ChangePowerButton(GtkWidget* button, gpointer data);
 
+    // mettre this en data
+    static void callBack_GoToButton(GtkWidget* button, gpointer data);
+
+    // mettre this en data
+    static void callBack_SetVitesseButton(GtkWidget* button, gpointer data);
 
 };
 

@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <stdlib.h>
 
 
 int InterfaceGraphique::nombreInstance =0 ;
@@ -122,9 +123,11 @@ void InterfaceGraphique::initWigets() {
 
 
     body = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    setMargin(body,20);
     gtk_box_pack_start(GTK_BOX(main), body, FALSE, FALSE, 0);
 
     bottom = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    setMargin(bottom,20);
     gtk_box_pack_start(GTK_BOX(main), bottom, FALSE, FALSE, 0);
 
 
@@ -191,7 +194,12 @@ void InterfaceGraphique::initWigets() {
 
     // BODY
 
-    // [!] A COMPLETER
+    instructionZone = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    gtk_box_pack_start(GTK_BOX(body), instructionZone, FALSE, FALSE, 0);
+
+    setupPositionWidget();   
+
+
 
     // Ajouter le GtkDrawingArea à la GtkBox
     drawing_area = gtk_drawing_area_new();
@@ -199,8 +207,6 @@ void InterfaceGraphique::initWigets() {
 
 
     setWigetForSpecificMode();
-
-
     gtk_widget_show_all(window);
 
 
@@ -242,10 +248,12 @@ void InterfaceGraphique::changeMode() {
     if (asservissement==POSITION) {
         asservissement=HAPTIQUE;
         controlMoteur->setAsservissementToHAPTIC();
+        detruirePositonBox();
         printf("InterfaceGraphique::Debug : asservissement HAPTIC\n");
     } else {
         asservissement=POSITION;
         controlMoteur->setAsservissementToPOSTION();
+        setupPositionWidget();
         printf("InterfaceGraphique::Debug : asservissement POSITION\n");
     }
     setWigetForSpecificMode();
@@ -265,6 +273,15 @@ void InterfaceGraphique::changePower() {
         printf("InterfaceGraphique::Debug : power ON\n");
     }   
 }
+
+void InterfaceGraphique::goTo(float positonX, float positionY) {
+    controlMoteur->goTo(positonX,positionY);
+}
+
+void InterfaceGraphique::setVitesse(float vitesse) {
+    controlMoteur->setVitesse(vitesse);
+}
+
 
 
 void InterfaceGraphique::rafraichir() {
@@ -347,4 +364,97 @@ void InterfaceGraphique::callBack_ChangeModeButton(GtkWidget* button, gpointer d
 void InterfaceGraphique::callBack_ChangePowerButton(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
     interfaceGraphique->changePower();
+}
+
+
+void InterfaceGraphique::setupPositionWidget() {
+
+    // --- section go to ---
+
+    goToBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    gtk_box_pack_start(GTK_BOX(instructionZone), goToBox, FALSE, FALSE, 0);
+
+    goToButton = gtk_button_new_with_label("Aller a : ");
+    gtk_box_pack_start(GTK_BOX(goToBox), goToButton, FALSE, FALSE, 0);
+    g_signal_connect(goToButton, "clicked", G_CALLBACK(callBack_GoToButton), this);
+
+    positionXEntry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(positionXEntry), "X en mm");
+    gtk_box_pack_start(GTK_BOX(goToBox), positionXEntry, FALSE, FALSE, 0);
+
+    positionYEntry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(positionYEntry), "Y en mm");
+    gtk_box_pack_start(GTK_BOX(goToBox), positionYEntry, FALSE, FALSE, 0);
+
+    // --- section set vitesse ---
+
+    setVitesseBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    gtk_box_pack_start(GTK_BOX(instructionZone), setVitesseBox, FALSE, FALSE, 0);
+
+    setVitesseButton = gtk_button_new_with_label("Definir la vitesse à :");
+    gtk_box_pack_start(GTK_BOX(setVitesseBox), setVitesseButton, FALSE, FALSE, 0);
+    g_signal_connect(setVitesseButton, "clicked", G_CALLBACK(callBack_SetVitesseButton), this);
+
+    vitesseEntry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(vitesseEntry), "mm/s");
+    gtk_box_pack_start(GTK_BOX(setVitesseBox), vitesseEntry, FALSE, FALSE, 0);
+
+
+    gtk_widget_show_all(window);
+
+}
+
+void InterfaceGraphique::callBack_GoToButton(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+
+
+    char* verification;
+
+    float positionX = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->positionXEntry)),&verification);
+    if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->positionXEntry))) {
+        std::cout << "DEBUG : entree invalide position X" << std::endl;
+        return;
+    }
+    float positionY = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->positionYEntry)),&verification);
+    if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->positionYEntry))) {
+        std::cout << "DEBUG : entree invalide position Y" << std::endl;
+        return;
+    }
+    interfaceGraphique->goTo(positionX,positionY);
+}
+
+
+void InterfaceGraphique::callBack_SetVitesseButton(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+
+
+    char* verification;
+
+    float vitesse = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->vitesseEntry)),&verification);
+    if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->vitesseEntry))) {
+        std::cout << "DEBUG : entree invalide vitesse" << std::endl;
+        return;
+    }
+
+    interfaceGraphique->setVitesse(vitesse);
+}
+
+void InterfaceGraphique::detruirePositonBox() {
+    goToButton = nullptr;
+    positionXEntry = nullptr;
+    positionYEntry = nullptr;
+
+    setVitesseButton = nullptr;
+    vitesseEntry = nullptr;
+
+    gtk_widget_destroy(setVitesseBox);
+
+    setVitesseBox = nullptr;
+
+    gtk_widget_destroy(goToBox);
+
+    goToBox = nullptr;
+
 }

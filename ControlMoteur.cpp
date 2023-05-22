@@ -101,7 +101,7 @@ void ControlMoteur::setPowerToOn() {
 
 void ControlMoteur::goTo(double positionX,double positionY) {
     if (asservissement==POSITION) {
-        printf("Debug : va vers la position\n");
+        printf("Debug : va vers la position %lf mm %lf mm\n",positionX,positionY);
         // [!] A COMPLETER PAR OLIVIER
     } else {
         printf("[!] impossible d'aller a une positon en mode haptic\n");
@@ -110,17 +110,17 @@ void ControlMoteur::goTo(double positionX,double positionY) {
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::setVitesse(double vitesse) {
-    printf("Debug : vitesse affecte\n");
+    printf("Debug : vitesse affecte a %lf mm/s\n",vitesse);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::setRaideur(double raideur) {
-    printf("Debug : raideur affecte\n");
+    printf("Debug : raideur affecte a %lf N/mm\n",raideur);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::setViscosite(double viscosite) {
-    printf("Debug : viscosite affecte\n"); 
+    printf("Debug : viscosite affecte a %lf kg/s\n",viscosite); 
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
