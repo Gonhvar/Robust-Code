@@ -222,7 +222,7 @@ void InterfaceGraphique::rafraichir() {
 }
 
 
-void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double froceY, double coupleX, double coupleY) {
+void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double forceY, double coupleX, double coupleY) {
     int nombreDecimal = 2;
 
     // position :
@@ -231,31 +231,35 @@ void InterfaceGraphique::updateData(double positionX,double positionY, double fo
     valeur << std::fixed << std::setprecision(nombreDecimal) << "X : " << positionX << " mm";
     gtk_label_set_text(GTK_LABEL(positionXLabel),valeur.str().c_str());
 
+    valeur.str(""); // vide le stream
+    valeur << "Y : " << positionY << " mm";
+    gtk_label_set_text(GTK_LABEL(positionYLabel),valeur.str().c_str());
 
-//     positionBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
-//     gtk_box_pack_start(GTK_BOX(recordDataBox), positionBox, FALSE, FALSE, 0);
-//     positionXLabel = gtk_label_new("X");
-//     gtk_container_add(GTK_CONTAINER(positionBox), positionXLabel);
-//     positionYLabel = gtk_label_new("Y");
-//     gtk_container_add(GTK_CONTAINER(positionBox), positionYLabel);
+    // force :
+        valeur.str(""); // vide le stream
+    valeur << "Fx : " << forceX << " N";
+    gtk_label_set_text(GTK_LABEL(forceXLabel),valeur.str().c_str());
 
-//     // force :
-//     forceBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
-//     gtk_box_pack_start(GTK_BOX(recordDataBox), forceBox, FALSE, FALSE, 0);
-//     forceXLabel = gtk_label_new("Fx");
-//     gtk_container_add(GTK_CONTAINER(forceBox), forceXLabel);
-//     forceYLabel = gtk_label_new("Fy");
-//     gtk_container_add(GTK_CONTAINER(forceBox), forceYLabel);
+        valeur.str(""); // vide le stream
+    valeur << "Fy : " << forceY << " N";
+    gtk_label_set_text(GTK_LABEL(forceYLabel),valeur.str().c_str());
 
-//     // moment :
-//     momentBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
-//     gtk_box_pack_start(GTK_BOX(recordDataBox), momentBox, FALSE, FALSE, 0);
-//     momentXLabel = gtk_label_new("Mx");
-//     gtk_container_add(GTK_CONTAINER(momentBox), momentXLabel);
-//     momentYLabel = gtk_label_new("My");
-//     gtk_container_add(GTK_CONTAINER(momentBox), momentYLabel);
+
+    // moment :
+        valeur.str(""); // vide le stream
+    valeur << "Mx : " << coupleX << " N.mm";
+    gtk_label_set_text(GTK_LABEL(momentXLabel),valeur.str().c_str());
+
+        valeur.str(""); // vide le stream
+    valeur << "My : " << coupleY << " N.mm";
+    gtk_label_set_text(GTK_LABEL(momentYLabel),valeur.str().c_str());
+
+
+
 }
 
+
+// --- ENSEMBLE CALLBACK --- :
 
 gboolean InterfaceGraphique::callbackWrapper_Rafraichir(gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
@@ -265,8 +269,6 @@ gboolean InterfaceGraphique::callbackWrapper_Rafraichir(gpointer data) {
 
 
 
-
-// --- ENSEMBLE CALLBACK --- :
 
 // Fonction de callback pour le signal "clicked"
 void InterfaceGraphique::callBack_ChangeModeButton(GtkWidget* button, gpointer data) {
