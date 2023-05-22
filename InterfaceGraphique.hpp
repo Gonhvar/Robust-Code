@@ -12,8 +12,11 @@ class ControlMoteur;
 class InterfaceGraphique {
     private :
         // --- CONSTANTES ---
-        const static int WIDTH = 1080;
-        const static int HEIGHT = 720;
+        const static int WIDTH_WINDOW = 1080;
+        const static int HEIGHT_WINDOW = 720;
+
+        const static int WIDTH_DRAWING_AREA = 500;
+        const static int HEIGHT_DRAWING_AREA = 350;
 
         const static int PERIODE_RAFRAICHISSEMENT = 30; // en ms
 
@@ -105,10 +108,10 @@ class InterfaceGraphique {
 
         // pour haptique
         GtkWidget* setRaideurBox;
-        GtkWidget* setRaideur;
+        GtkWidget* setRaideurButton;
         GtkWidget* raideurEntry;
         GtkWidget* setViscositeBox;
-        GtkWidget* setViscosite;
+        GtkWidget* setViscositeButton;
         GtkWidget* viscositeEntry;
 
 
@@ -142,11 +145,24 @@ class InterfaceGraphique {
 
         static void addCSS(GtkWidget* window);
 
+        static void addRedBorder(GtkWidget* widget);
+
+        static void addGreenBorder(GtkWidget* widget);
+
+        static void changeColorRed(GtkWidget* widget);
+
+        static void changeColorGreen(GtkWidget* widget);
+
         static void setMargin(GtkWidget* widget, int margin);
 
-        // cree, met en place et initialise la section specifique aux widgets
+        // cree, met en place et initialise la section specifique a la position
         // dans le corps de instructionZone
         void setupPositionWidget();
+
+        // cree, met en place et initialise la section specifique a l'haptique
+        // dans le corps de instructionZone
+        void setupHaptiqueWidget();
+
 
         void changeMode();
 
@@ -154,9 +170,15 @@ class InterfaceGraphique {
 
         void goTo(float positonX, float positionY);
 
-        void setVitesse(float vitesse);
+        void setVitesse(double vitesse);
+
+        void setRaideur(double raideur);
+
+        void setViscosite(double viscosite);
 
         void detruirePositonBox();
+
+        void detruireHaptiqueBox();
 
     public :
         // lance l'interface dans un thread 
@@ -173,6 +195,10 @@ class InterfaceGraphique {
 
     static gboolean callbackWrapper_Rafraichir(gpointer data);
 
+
+
+
+
     // --- ENSEMBLE CALLBACK --- :
 
 
@@ -187,6 +213,14 @@ class InterfaceGraphique {
 
     // mettre this en data
     static void callBack_SetVitesseButton(GtkWidget* button, gpointer data);
+
+    // mettre this en data
+    static void callBack_SetRaideurButton(GtkWidget* button, gpointer data);
+
+    // mettre this en data
+    static void callBack_SetViscositeButton(GtkWidget* button, gpointer data);
+
+
 
 };
 

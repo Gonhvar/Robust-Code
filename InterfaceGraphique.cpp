@@ -83,7 +83,7 @@ void InterfaceGraphique::setMargin(GtkWidget* widget, int margin) {
 void InterfaceGraphique::initWindow() {
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "Projet Robust");
-    gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
+    gtk_window_set_default_size(GTK_WINDOW(window), WIDTH_WINDOW, HEIGHT_WINDOW);
     g_signal_connect(GTK_WINDOW(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
     addCSS(window); // Changer la taille de police
 
@@ -179,6 +179,7 @@ void InterfaceGraphique::initWigets() {
 
     // bouton change Power :
     changePowerButton = gtk_button_new_with_label("Moteur hors tension");
+    addRedBorder(changePowerButton);
     // egalement reparti dans head :
     gtk_widget_set_hexpand(changePowerButton, TRUE);
     gtk_widget_set_halign(changePowerButton, GTK_ALIGN_FILL);
@@ -201,9 +202,12 @@ void InterfaceGraphique::initWigets() {
 
 
 
-    // Ajouter le GtkDrawingArea à la GtkBox
+    // Adrawing area
     drawing_area = gtk_drawing_area_new();
     gtk_box_pack_start(GTK_BOX(body), drawing_area, TRUE, TRUE, 0);
+    gtk_widget_set_size_request(drawing_area, WIDTH_DRAWING_AREA, HEIGHT_DRAWING_AREA);
+
+
 
 
     setWigetForSpecificMode();
@@ -217,7 +221,46 @@ void InterfaceGraphique::waitEnd() {
 }
 
 
+void InterfaceGraphique::addRedBorder(GtkWidget* widget) {
+    // Définit le style CSS pour la bordure
+    const gchar *css = "button { border: 4px solid red; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
 
+void InterfaceGraphique::addGreenBorder(GtkWidget* widget) {
+    // Définit le style CSS pour la bordure
+    const gchar *css = "button { border: 4px solid green; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
+
+
+void InterfaceGraphique::changeColorRed(GtkWidget* widget) {
+    // Définit le style CSS pour la couleur d'arrière-plan
+    const gchar *css = "button { background-color: red; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);    
+}
+
+void InterfaceGraphique::changeColorGreen(GtkWidget* widget) {
+    // Définit le style CSS pour la couleur d'arrière-plan
+    const gchar *css = "button { background-color: green; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);    
+}
 
 InterfaceGraphique::~InterfaceGraphique() {
     g_source_remove(timeout_id); 
@@ -249,10 +292,12 @@ void InterfaceGraphique::changeMode() {
         asservissement=HAPTIQUE;
         controlMoteur->setAsservissementToHAPTIC();
         detruirePositonBox();
+        setupHaptiqueWidget();
         printf("InterfaceGraphique::Debug : asservissement HAPTIC\n");
     } else {
         asservissement=POSITION;
         controlMoteur->setAsservissementToPOSTION();
+        detruireHaptiqueBox();
         setupPositionWidget();
         printf("InterfaceGraphique::Debug : asservissement POSITION\n");
     }
@@ -265,11 +310,13 @@ void InterfaceGraphique::changePower() {
         powerOn=false;
         controlMoteur->setPowerToOff();
         gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
+        addRedBorder(changePowerButton);
         printf("InterfaceGraphique::Debug : power OFF\n");
     } else {
         powerOn=true;
         controlMoteur->setPowerToOn();
         gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
+        addGreenBorder(changePowerButton);
         printf("InterfaceGraphique::Debug : power ON\n");
     }   
 }
@@ -278,8 +325,16 @@ void InterfaceGraphique::goTo(float positonX, float positionY) {
     controlMoteur->goTo(positonX,positionY);
 }
 
-void InterfaceGraphique::setVitesse(float vitesse) {
+void InterfaceGraphique::setVitesse(double vitesse) {
     controlMoteur->setVitesse(vitesse);
+}
+
+void InterfaceGraphique::setRaideur(double raideur) {
+    controlMoteur->setRaideur(raideur);
+}
+
+void InterfaceGraphique::setViscosite(double viscosite) {
+    controlMoteur->setViscosite(viscosite);
 }
 
 
@@ -404,6 +459,45 @@ void InterfaceGraphique::setupPositionWidget() {
 
 }
 
+void InterfaceGraphique::setupHaptiqueWidget() {
+
+
+    // --- section set raideur ---
+
+    setRaideurBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    gtk_box_pack_start(GTK_BOX(instructionZone), setRaideurBox, FALSE, FALSE, 0);
+
+    setRaideurButton = gtk_button_new_with_label("Definir la raideur à :");
+    gtk_box_pack_start(GTK_BOX(setRaideurBox), setRaideurButton, FALSE, FALSE, 0);
+    g_signal_connect(setRaideurButton, "clicked", G_CALLBACK(callBack_SetRaideurButton), this);
+
+    raideurEntry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(raideurEntry), "N/mm");
+    gtk_box_pack_start(GTK_BOX(setRaideurBox), raideurEntry, FALSE, FALSE, 0);
+
+
+
+    // --- section set viscosite ---
+
+    setViscositeBox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,10);
+    gtk_box_pack_start(GTK_BOX(instructionZone), setViscositeBox, FALSE, FALSE, 0);
+
+    setViscositeButton = gtk_button_new_with_label("Definir la viscosite à :");
+    gtk_box_pack_start(GTK_BOX(setViscositeBox), setViscositeButton, FALSE, FALSE, 0);
+    g_signal_connect(setViscositeButton, "clicked", G_CALLBACK(callBack_SetViscositeButton), this);
+
+    viscositeEntry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(viscositeEntry), "kg/s");
+    gtk_box_pack_start(GTK_BOX(setViscositeBox), viscositeEntry, FALSE, FALSE, 0);
+
+
+    gtk_widget_show_all(window);
+
+
+}
+
+
+
 void InterfaceGraphique::callBack_GoToButton(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
 
@@ -434,11 +528,46 @@ void InterfaceGraphique::callBack_SetVitesseButton(GtkWidget* button, gpointer d
 
     float vitesse = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->vitesseEntry)),&verification);
     if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->vitesseEntry))) {
-        std::cout << "DEBUG : entree invalide vitesse" << std::endl;
+        std::cout << "InterfaceGraphique::DEBUG : entree invalide vitesse" << std::endl;
         return;
     }
 
     interfaceGraphique->setVitesse(vitesse);
+}
+
+
+void InterfaceGraphique::callBack_SetRaideurButton(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+
+
+    char* verification;
+
+    float raideur = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->raideurEntry)),&verification);
+    if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->raideurEntry))) {
+        std::cout << "InterfaceGraphique::DEBUG : entree invalide raideur" << std::endl;
+        return;
+    }
+
+    interfaceGraphique->setRaideur(raideur);
+}
+
+
+
+void InterfaceGraphique::callBack_SetViscositeButton(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+
+
+    char* verification;
+
+    float viscosite = strtof(gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->viscositeEntry)),&verification);
+    if (verification == gtk_entry_get_text(GTK_ENTRY(interfaceGraphique->viscositeEntry))) {
+        std::cout << "InterfaceGraphique::DEBUG : entree invalide viscosite" << std::endl;
+        return;
+    }
+
+    interfaceGraphique->setViscosite(viscosite);
 }
 
 void InterfaceGraphique::detruirePositonBox() {
@@ -456,5 +585,16 @@ void InterfaceGraphique::detruirePositonBox() {
     gtk_widget_destroy(goToBox);
 
     goToBox = nullptr;
+
+}
+
+void InterfaceGraphique::detruireHaptiqueBox() {
+
+
+    gtk_widget_destroy(setViscositeBox);
+    setViscositeBox = nullptr;
+
+    gtk_widget_destroy(setRaideurBox);
+    setRaideurBox = nullptr;
 
 }
