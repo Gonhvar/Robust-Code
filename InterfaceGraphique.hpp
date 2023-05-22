@@ -2,25 +2,73 @@
 #include "Robust.hpp"
 #include <thread>
 
+class Rasberry;
+class ControlMoteur;
+
 
 // permet de lancer l'interface graphique
 // /!\ instancier qu'une seule fois
 class InterfaceGraphique {
     private :
+        // --- CONSTANTES ---
+        const static int WIDTH = 1080;
+        const static int HEIGHT = 720;
+
+
         // --- ATTRIBUTS ---
 
-        enum Etat {POSITION,HAPTIQUE};
-        Etat etat;
+        enum Asservissement {POSITION,HAPTIQUE};
+        Asservissement asservissement;
         GtkWidget *window;
         std::thread *gtkThread;
         static int nombreInstance; //garantie qu'on instancie qu'une fois on utilise pas singleton patern car thread
 
+        Rasberry *rasberry;
+        ControlMoteur *controlMoteur;
+
+
+
         // CONTENEURS :
         
-        GtkNotebook* notebook; // contient les pages POSITION et HAPTIC de l'application
+        // contient head, body et bottom
+        GtkWidget *main;
 
-        GtkLabel* pagePosition; 
-        GtkLabel* pageHaptic;
+        // haut de la page
+        GtkWidget *head;
+        // milieu de la page
+        GtkWidget *body;
+        // fin de la page
+        GtkWidget *bottom;
+
+        // ---HEAD DE LA PAGE--- :
+
+        GtkWidget *changeModeButton;
+
+        GtkWidget *recordDataBox; // contient les forces, positions et couples
+        
+        // position :
+        GtkWidget *positionBox;
+        GtkWidget *positionXLabel;
+        GtkWidget *positionYLabel;
+        
+        // force :
+        GtkWidget *forceBox;
+        GtkWidget *forceXLabel;
+        GtkWidget *forceYLabel;
+
+        // moment :
+        GtkWidget *momentBox;
+        GtkWidget *momentXLabel;
+        GtkWidget *momentYLabel;
+
+
+
+
+
+        // ---BODY DE LA PAGE--- :
+
+        GtkWidget* drawing_area;
+
 
 
 
@@ -34,13 +82,16 @@ class InterfaceGraphique {
         // va etre lance dans un thread
         void runGtkMain();
 
-        
+        std::string getModeName();
+
+        // cree les widget pour un mode specifique et change les widgets en fonction du mode
+        void setWigetForSpecificMode();
 
 
 
     public :
         // lance l'interface dans un thread 
-        InterfaceGraphique();
+        InterfaceGraphique(Rasberry *rasberry, ControlMoteur *controlMoteur);
 
         ~InterfaceGraphique();
 
@@ -49,6 +100,10 @@ class InterfaceGraphique {
         // /!\ appeler qu'une fois
         void waitEnd();
 
+        void changeMode();
+
+
+
 
 
 
@@ -56,3 +111,8 @@ class InterfaceGraphique {
 
 
 };
+
+
+// ENSEMBLE CALLBACK :
+
+void InterfaceGraphique_callBack_ChangeModeButton(GtkWidget* button, gpointer data);

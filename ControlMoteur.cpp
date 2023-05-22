@@ -19,7 +19,7 @@ ControlMoteur::ControlMoteur() {
 void ControlMoteur::runControlMoteur() {
     while (true)
     {
-        printf("Debug : ControlMoteur\n");
+        //printf("Debug : ControlMoteur\n");
     }
     
 } 
@@ -40,14 +40,22 @@ void ControlMoteur::getForce(double &forceX, double &forceY) {
 // [!] A COMPLETER PAR OLIVIER
 void ControlMoteur::changeAsservissement(){
     if (asservissement==POSITION) {
-        asservissement=HAPTIC;
+        setAsservissementToHAPTIC();
+    } else {
+        setAsservissementToPOSTION();
+    }
+}
+
+void ControlMoteur::setAsservissementToHAPTIC() {
+    asservissement=HAPTIC;
         printf("Debug : ControlMoteur en asservissement HAPTIC\n");
         // [!] A COMPLETER PAR OLIVIER
-    } else {
+}
+
+void ControlMoteur::setAsservissementToPOSTION() {
         asservissement=POSITION;
         printf("Debug : ControlMoteur en asservissement POSITION\n");
-        // [!] A COMPLETER PAR OLIVIER
-    }
+        // [!] A COMPLETER PAR OLIVIER  
 }
 
 

@@ -17,7 +17,7 @@ Rasberry::Rasberry() {
 void Rasberry::runRasberry() {
     while (true)
     {
-        printf("Debug : runRasberry\n");
+        //printf("Debug : runRasberry\n");
     }
 }
 

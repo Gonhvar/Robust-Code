@@ -34,6 +34,10 @@ class ControlMoteur {
         // switch entre l'Asservissement en POSITION et HAPTIC
         void changeAsservissement();
 
+        void setAsservissementToHAPTIC();
+
+        void setAsservissementToPOSTION();
+
         Asservissement getAsservissement() {return asservissement;}
 
         // [!] A COMPLETER PAR OLIVIER
