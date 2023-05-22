@@ -7,35 +7,42 @@
 #include <gtk/gtk.h>
 #include <thread>
 
+// // Callback function for the button
+// void on_button_clicked(GtkWidget *widget, gpointer data)
+// {
+//     g_print("Button clicked!\n");
+// }
 
+// Structure pour stocker les coordonnées d'un dessin animé
+struct AnimatedShape {
+  int x, y; // Coordonnées du dessin
+  int dx, dy; // Vitesse de déplacement
+  int width, height; // Dimensions du dessin
+  GtkWidget* drawing_area; //endroit ou va etre mit le dessin
 
-int main(int argc, char *argv[])
-{
+};
 
+// Fonction de dessin pour un dessin animé
+gboolean draw_animated_shape(GtkWidget* widget, cairo_t* cr, gpointer data) {
+  AnimatedShape* shape = static_cast<AnimatedShape*>(data);
 
-    InterfaceGraphique interfaceGraphique;
-    ControlMoteur controlMoteur;
-    Rasberry rasberry;
+  // Effacer la zone de dessin
+  cairo_set_source_rgb(cr, 1.0, 1.0, 1.0); // Couleur blanche
+  cairo_paint(cr);
 
-
-
-
-
-
-
-    interfaceGraphique.waitEnd();
-    controlMoteur.waitEnd();
-    rasberry.waitEnd();
-
-
-
-
-    return 0;
+  // Dessiner un rectangle rouge à la position actuelle du dessin
+  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0); // Couleur rouge
+  cairo_rectangle(cr, shape->x, shape->y, shape->width, shape->height);
+  cairo_fill(cr);
+  return FALSE;
+      
 }
 
+// Fonction de mise à jour pour le dessin animé
+gboolean update_animated_shape(gpointer data) {
+  AnimatedShape* shape = static_cast<AnimatedShape*>(data);
 
 
-<<<<<<< HEAD
   // Mettre à jour les coordonnées en fonction de la vitesse
   shape->x += shape->dx;
   shape->y += shape->dy;
@@ -99,9 +106,6 @@ int main(int argc, char** argv) {
 
   // Afficher tous les éléments de la fenêtre
   gtk_widget_show_all(window);
-
-  gtk_widget_destroy(entry);
-  
 
   // Démarrer la boucle principale de GTK
   gtk_main();
@@ -184,5 +188,3 @@ int main(int argc, char** argv) {
 // Lorsque l'événement se produit, la fonction de callback statique sera appelée avec le widget et les données utilisateur. À l'intérieur de cette fonction, vous pouvez récupérer l'instance de la classe à partir des données utilisateur et appeler la méthode de classe appropriée.
 
 // Cependant, il est important de noter que cette approche nécessite une attention particulière à la gestion de la durée de vie des objets et à la gestion de la mémoire, car GTK ne fournit pas de mécanismes natifs pour suivre ou libérer les ressources associées aux objets liés. Vous devrez vous assurer que les objets restent valides aussi longtemps que les événements GTK sont liés à leurs callbacks correspondants.
-=======
->>>>>>> backup

@@ -7,11 +7,27 @@
 // /!\ instancier qu'une seule fois
 class InterfaceGraphique {
     private :
+        // --- ATTRIBUTS ---
+
         enum Etat {POSITION,HAPTIQUE};
         Etat etat;
         GtkWidget *window;
         std::thread *gtkThread;
         static int nombreInstance; //garantie qu'on instancie qu'une fois on utilise pas singleton patern car thread
+
+        // CONTENEURS :
+        
+        GtkNotebook* notebook; // contient les pages POSITION et HAPTIC de l'application
+
+        GtkLabel* pagePosition; 
+        GtkLabel* pageHaptic;
+
+
+
+        // --- METHODES ---
+
+        // cree les widget, les initialises, les places au bon endroit
+        void initWigets();
 
         void initWindow();
 
