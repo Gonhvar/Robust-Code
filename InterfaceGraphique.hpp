@@ -120,6 +120,7 @@ class InterfaceGraphique {
         // --- HEAD DE LA PAGE ---:
 
         GtkWidget* resetButton;
+        GtkWidget* discoButton;
 
 
 
@@ -153,6 +154,8 @@ class InterfaceGraphique {
 
         static void addGreenBorder(GtkWidget* widget);
 
+        static void addMagentaBorder(GtkWidget* widget);
+
         static void changeColorRed(GtkWidget* widget);
 
         static void changeColorGreen(GtkWidget* widget);
@@ -181,6 +184,8 @@ class InterfaceGraphique {
         void setViscosite(double viscosite);
 
         void reset();
+
+        void disco();
 
         void detruirePositonBox();
 
@@ -229,7 +234,8 @@ class InterfaceGraphique {
     // mettre this en data
     static void callBack_Reset(GtkWidget* button, gpointer data);
 
-
+    // mettre this en data
+    static void callBack_Disco(GtkWidget* button, gpointer data);
 
 };
 

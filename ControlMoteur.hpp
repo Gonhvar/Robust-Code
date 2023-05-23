@@ -83,6 +83,9 @@ class ControlMoteur {
         // reetalone les encodeurs
         // remet l'effecteur en position centrale
         void reset();
+        
+        // [!] A IMPLEMENTER PAR OLIVIER
+        void disco();
 
         // fonction blocante qui attend que le thread se finisse
         // /!\ appeler qu'une fois

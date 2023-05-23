@@ -211,9 +211,17 @@ void InterfaceGraphique::initWigets() {
 
 
     // --- BOTTOM ---
-    resetButton= gtk_button_new_with_label("Etalloner");
+
+    // resetButton
+    resetButton = gtk_button_new_with_label("Etalloner");
     gtk_box_pack_start(GTK_BOX(bottom), resetButton, FALSE, FALSE, 0);
     g_signal_connect(resetButton, "clicked", G_CALLBACK(callBack_Reset), this);
+
+    // discoButton
+    discoButton = gtk_button_new_with_label("Disco");
+    gtk_box_pack_start(GTK_BOX(bottom), discoButton, FALSE, FALSE, 0);
+    addMagentaBorder(discoButton);
+    g_signal_connect(discoButton, "clicked", G_CALLBACK(callBack_Disco), this);
     
 
 
@@ -242,6 +250,16 @@ void InterfaceGraphique::addRedBorder(GtkWidget* widget) {
 void InterfaceGraphique::addGreenBorder(GtkWidget* widget) {
     // Définit le style CSS pour la bordure
     const gchar *css = "button { border: 4px solid green; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
+
+void InterfaceGraphique::addMagentaBorder(GtkWidget* widget) {
+    // Définit le style CSS pour la bordure
+    const gchar *css = "button { border: 4px solid magenta; }";
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(provider, css, -1, NULL);
     GtkStyleContext *context = gtk_widget_get_style_context(widget);
@@ -347,6 +365,10 @@ void InterfaceGraphique::setViscosite(double viscosite) {
 
 void InterfaceGraphique::reset() {
     controlMoteur->reset();
+}
+
+void InterfaceGraphique::disco() {
+    controlMoteur->disco();
 }
 
 
@@ -585,6 +607,12 @@ void InterfaceGraphique::callBack_Reset(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
 
      interfaceGraphique->reset();
+}
+
+void InterfaceGraphique::callBack_Disco(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+    interfaceGraphique->disco();   
 }
 
 void InterfaceGraphique::detruirePositonBox() {

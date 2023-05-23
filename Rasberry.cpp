@@ -14,6 +14,7 @@ Rasberry::Rasberry() {
     coupleX = -0.1;
     coupleY = -5.1;
 
+    
 
     rasberryThread = new std::thread(&Rasberry::runRasberry,this);
 }
@@ -34,9 +35,25 @@ void Rasberry::runRasberry() {
     {
         //printf("Debug : runRasberry\n");
         std::string line;
+        std::string token;
+        const char* seperator = " "; // space  
+        char *ptr; 
+
         while (std::getline(serial, line)) {
             //Ici, s'occuper des données reçues
-            std::cout << line << std::endl;
+            //std::cout << line << std::endl;
+            char* cstr = new char[line.length() + 1];
+            std::strcpy(cstr, line.c_str());
+
+            ptr = std::strtok(cstr, seperator);
+
+            while (ptr != NULL)  
+            {  
+                std::cout << ptr  << std::endl; // print the string token  
+                ptr = strtok (NULL, seperator);
+            }  
+
+            delete[] cstr;
         }
     }
     serial.close();

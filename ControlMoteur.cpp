@@ -128,4 +128,9 @@ void ControlMoteur::reset() {
     printf("ControlMoteur::Debug : reset\n"); 
 }
 
+// [!] A IMPLEMENTER PAR OLIVIER
+void ControlMoteur::disco() {
+    printf("ControlMoteur::Debug : disco\n"); 
+}
+
 
