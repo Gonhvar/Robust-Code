@@ -1,5 +1,6 @@
 #include "ControlMoteur.hpp"
 #include <iostream>
+#include "Modele.hpp"
 
 int ControlMoteur::nombreInstance =0;
 

@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <stdlib.h>
 
+#include "modele.hpp"
+
 
 int InterfaceGraphique::nombreInstance =0 ;
 
@@ -348,6 +350,14 @@ void InterfaceGraphique::changePower() {
 }
 
 void InterfaceGraphique::goTo(float positonX, float positionY) {
+    if (positonX< Model::ZONE_TRAVAIL_MIN_X || positonX>Model::ZONE_TRAVAIL_MAX_X) {
+        printf("en dehors de la zone\n");
+        return ;
+    }
+    if (positionY< Model::ZONE_TRAVAIL_MIN_Y || positionY>Model::ZONE_TRAVAIL_MAX_Y) {
+        printf("en dehors de la zone\n");
+        return ;
+    }
     controlMoteur->goTo(positonX,positionY);
 }
 
