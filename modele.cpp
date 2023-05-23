@@ -3,6 +3,10 @@
 #include <stdlib.h>
 
 
+int Model::OFFSET_CABLE_I = Model::OFFSET_CABLE_I_ORIGINE; 
+int Model::OFFSET_CABLE_II = Model::OFFSET_CABLE_II_ORIGINE; 
+int Model::OFFSET_CABLE_III = Model::OFFSET_CABLE_III_ORIGINE; 
+
 void Model::_model_position_direct(double size_cable_1, double size_cable_2, char utilisation[2], double *pos_X, double *pos_Y) {
     //A IMPLEMENTER
 }
@@ -300,7 +304,7 @@ bool Model::in_triangle(const double position_effecteur[2]) {
 }
 
 
-void Model::couple_moteur(double const force_operationnelle[2], double const position_effecteur[2] ,double couple_moteur[3]) {
+void Model::couple_moteur_for_force(double const force_operationnelle[2], double const position_effecteur[2] ,double couple_moteur[3]) {
 
 
     //printf("force_operationnelle x : %f | y : %f",force_operationnelle[0],force_operationnelle[1]);
@@ -398,3 +402,20 @@ void Model::couple_moteur(double const force_operationnelle[2], double const pos
     
 }
 
+void Model::coupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]) {
+    double forceSurEffecteur[2];
+    forceSurEffecteur[0] = raideur*position_effecteur[0] + viscosite*vitesse_effecteur[0]/1000; // [viscosite*vitesse_effecteur[0]/1000] = kg/s * m/s = N
+    forceSurEffecteur[1] = raideur*position_effecteur[1] + viscosite*vitesse_effecteur[1]/1000;
+    couple_moteur_for_force(forceSurEffecteur,position_effecteur,couple_moteur);
+}
+
+float Model::coupleFromAngle(double angle) {
+    return angle*RAIDEUR_ANGULAIRE;
+}
+
+
+void Model::setOffsetCable(double offsetCable[3]) {
+    OFFSET_CABLE_I = offsetCable[0];
+    OFFSET_CABLE_II = offsetCable[1];
+    OFFSET_CABLE_III = offsetCable[2];
+}

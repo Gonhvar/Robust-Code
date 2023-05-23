@@ -54,6 +54,7 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "iomanip": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "cstring": "cpp"
     }
 }

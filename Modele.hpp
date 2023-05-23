@@ -35,6 +35,9 @@
 #define OFFSET_CABLE_B 400 //[!] A CHANGER
 #define OFFSET_CABLE_C 390 //[!] A CHANGER
 
+
+
+
 typedef struct _Point
 {
     int x; //en mm
@@ -42,7 +45,7 @@ typedef struct _Point
 } Point;
 
 typedef struct _PointD
-{Model
+{
     double x; //en mm
     double y; //en mm
 } PointD;
@@ -83,6 +86,8 @@ Point _intersection_cercles_proche_point(Point centreA, double rayonA,  double r
 double distance(PointD p1, PointD p2);
 
 int intersection_cercles(PointD centre1, double rayon1, PointD centre2, double rayon2, PointD *intersection1, PointD *intersection2);
+
+
 
 
 #endif

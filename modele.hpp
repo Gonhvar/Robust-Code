@@ -27,6 +27,7 @@ class Model {
         // ---CONSTANTES-----------------------------
         static constexpr float PI = 3.14159;
         static constexpr float g = 9.81; // m/(s^2)
+        static constexpr float RAIDEUR_ANGULAIRE = 10; // en N.mm/rad  [!] A CHANGER
 
         // ---FONCTIONS---------------------------
 
@@ -145,10 +146,16 @@ class Model {
         static const int INCREMENTS_PAR_TOUR = 512;
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
-        //A regler grace a une fonction specifique
-        static const int OFFSET_CABLE_I = 100; //[!] A CHANGER
-        static const int OFFSET_CABLE_II  = 100; //[!] A CHANGER
-        static const int OFFSET_CABLE_III = 100; //[!] A CHANGER
+        //defini la valeur a l'originie de OffsetCableI
+        static const int OFFSET_CABLE_I_ORIGINE = 100; 
+        static const int OFFSET_CABLE_II_ORIGINE  = 100; 
+        static const int OFFSET_CABLE_III_ORIGINE = 100; 
+
+        //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
+        //A regler grace a setOffsetCable()
+        static int OFFSET_CABLE_I; 
+        static int OFFSET_CABLE_II; 
+        static int OFFSET_CABLE_III; 
 
         static constexpr double MASSE = 0.300; // kg
         static const bool COMPENSE_POIDS = true;
@@ -160,18 +167,37 @@ class Model {
 
         static void increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,int *increment_moteur_A, int *increment_moteur_B, int *increment_moteur_C);
 
-        // calcul le couple a mettre dans les moteurs (couple_moteur) pour obtenir une 
+        // calcul le couple a mettre dans les moteurs (couple_moteur) pour obtenir une force_operationnelle
         // entrees : 
         // force_operationnelle : en N
         // position_effecteur : en mm depuis l'origine
         // sortie :
         // couple_moteur : en N.mm  => /!\ nullptr si pas dans triangle 
         // temps d'execution sur un processeur donnee : 0.4ms (2,5kHz)
-        static void couple_moteur(double const force_operationnelle[2], double const position_effecteur[2] ,double couple_moteur[3]);
+        static void couple_moteur_for_force(double const force_operationnelle[2], double const position_effecteur[2] ,double couple_moteur[3]);
 
-        
+        // calcul le couple a mettre dans les moteurs (couple_moteur) en fonction de la vitesse et de la raideur
+        // entrees : 
+        // position_effecteur : en mm depuis l'origine
+        // vitessse_effecteur : en mm/s 
+        // raideur : en N/mm
+        // viscosite : en kg/s
+        // sortie :
+        // couple_moteur : en N.mm  => /!\ nullptr si pas dans triangle 
+        // temps d'execution sur un processeur donnee : 0.4ms (2,5kHz)
+        static void coupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]);
+
+
         // renvoie si l'effecteur est dans le triangle forme par les positions des sorties des fils des moteurs
         static bool in_triangle(const double position_effecteur[2]);
+
+        // renvoie le couple assoccie a l'angle des potentiomètres
+        // entree : angle en degre
+        // sortie : couple en N.mm
+        static float coupleFromAngle(double angle);
+
+        //definir longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
+        static void setOffsetCable(double offsetCable[3]);
 
 };
 

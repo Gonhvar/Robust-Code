@@ -176,8 +176,10 @@ class InterfaceGraphique {
 
         void goTo(float positonX, float positionY);
 
+        // vitesse en mm/s
         void setVitesse(double vitesse);
 
+        // raideur en kg/s
         void setRaideur(double raideur);
 
         void setViscosite(double viscosite);
