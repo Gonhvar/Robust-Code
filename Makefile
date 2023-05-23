@@ -8,14 +8,8 @@ ATK_HEADER = -I/usr/include/atk-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-li
 
 
 
-prog: Robust.o Modele.o InterfaceGraphique.o Main.o modele.o Rasberry.o ControlMoteur.o 
-	g++ -o prog Robust.o Modele.o Main.o InterfaceGraphique.o modele.o Rasberry.o ControlMoteur.o -lpcanbasic -lm `pkg-config --cflags --libs gtk+-3.0`
-
-Modele.o : Modele.cpp Modele.hpp
-	g++ -Wall Modele.cpp -c 
-
-Robust.o : Robust.cpp Robust.hpp Modele.hpp PCANBasic.h
-	g++ -Wall Robust.cpp -c
+prog: InterfaceGraphique.o Main.o modele.o Rasberry.o ControlMoteur.o 
+	g++ -o prog Main.o InterfaceGraphique.o modele.o Rasberry.o ControlMoteur.o -lpcanbasic -lm `pkg-config --cflags --libs gtk+-3.0`
 
 modele.o : modele.cpp modele.hpp 
 	g++ -Wall modele.cpp -c
@@ -23,8 +17,7 @@ modele.o : modele.cpp modele.hpp
 Rasberry.o : Rasberry.cpp Rasberry.hpp 
 	g++ -Wall Rasberry.cpp -c
 
-
-ControlMoteur.o : ControlMoteur.cpp ControlMoteur.hpp 
+ControlMoteur.o : ControlMoteur.cpp ControlMoteur.hpp modele.hpp PCANBasic.h
 	g++ -Wall ControlMoteur.cpp -c
 
 InterfaceGraphique.o : InterfaceGraphique.cpp InterfaceGraphique.hpp

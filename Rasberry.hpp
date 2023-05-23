@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>  
 #include <fstream>
+#include <vector>
 
 
 // /!\ A instancier une seule fois
@@ -16,8 +17,12 @@ class Rasberry {
 
         static int nombreInstance; //garantie qu'on instancie qu'une fois, on utilise pas singleton patern car thread
         
+        int potX = 0;
+        int potY = 0;
+        
         float coupleX; // N.mm
         float coupleY; // Nmm
+
 
 
         // [!] A IMPLEMENTER PAR OLIVIER
@@ -29,6 +34,7 @@ class Rasberry {
         // [!] A IMPLEMENTER PAR OLIVIER
         Rasberry();
 
+        std::vector<int> splitString(std::string* line);
 
         // affecte a coupleX et coupeY le couple engendree par la sonde sur l'effecteur en N.mm
         void getCouples(double &coupleX, double &coupeY);
@@ -38,20 +44,5 @@ class Rasberry {
         void waitEnd();
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

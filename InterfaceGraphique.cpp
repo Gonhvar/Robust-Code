@@ -316,15 +316,16 @@ void InterfaceGraphique::setWigetForSpecificMode() {
 }
 
 void InterfaceGraphique::changeMode() {
+
+    controlMoteur->changeAsservissement();
+    
     if (asservissement==POSITION) {
         asservissement=HAPTIQUE;
-        controlMoteur->setAsservissementToHAPTIC();
         detruirePositonBox();
         setupHaptiqueWidget();
         printf("InterfaceGraphique::Debug : asservissement HAPTIC\n");
     } else {
         asservissement=POSITION;
-        controlMoteur->setAsservissementToPOSTION();
         detruireHaptiqueBox();
         setupPositionWidget();
         printf("InterfaceGraphique::Debug : asservissement POSITION\n");

@@ -2,6 +2,63 @@
 #define CONTROL_MOTEUR
 
 #include <thread>
+#include <stdio.h>
+#include <stdint.h>
+#include <PCANBasic.h>
+#include <iostream>
+#include <unistd.h>
+#include <string.h>
+#include <vector>
+#include <fstream>
+#include <signal.h>
+#include <cstdlib>
+#include <time.h>
+
+#include "modele.hpp"
+
+using namespace std;
+
+#define POINTS_PAR_MM 10
+#define MM_PAR_POINTS 0.1
+
+//Definition des COBID
+#define COBID_ALL_CAN_SDO 0x600
+#define COBID_CAN1_SDO 0x601 
+#define COBID_CAN2_SDO 0x602 
+#define COBID_CAN3_SDO 0x603 
+
+//-W = write | R = Read | B = Bytes-
+#define W_1B 0x2F
+#define W_2B 0x2B
+#define W_4B 0x23
+#define R 0x40
+#define R_1B 0x4F
+#define R_2B 0x4B
+#define R_4B 0x43
+
+//INDEX :
+#define CONTROLWORD 0x6040
+#define STATUSWORD  0x6041
+#define MODES_OF_OPERATION 0x6060
+#define TARGET_TORQUE 0x6071
+#define TARGET_POSITION 0x607A
+#define HOMING_METHOD 0x6098
+#define TORQUE_OFFSET 0x60B2
+
+
+// CONSTANTES MOTEUR
+#define MOTOR_RATED_TORQUE 75.7
+
+typedef struct tagmsgRecu{
+  uint8_t id;
+  uint16_t index;
+  uint8_t subIndex;
+  uint32_t valData;
+
+  uint8_t taille;
+  //True si le message en question n'est qu'un message de confirmation de reception
+  bool isConfirmReception;
+}msgRecu; 
 
 // /!\ A instancier une seule fois
 class ControlMoteur {
@@ -19,13 +76,62 @@ class ControlMoteur {
         float forceX; //N
         float forceY; //N
 
+        float raideur;
+        float viscosite;
+
+        //================INITIALISATION_PEAK================
+        TPCANHandle find_channel();
+        TPCANBaudrate init_baudrate_doc();
+        void initialise_CAN_USB();
+
+        //==================MESSAGES==================
+
+        void init_msg_SDO(TPCANMsg* msg, int id, uint8_t data_length, uint16_t index, uint8_t subIndex, uint8_t data[4]);
+        void print_message(TPCANMsg received);
+        void print_vectorMessage(vector<msgRecu> get);
+        msgRecu get_message(TPCANMsg received);
+        vector<msgRecu> read_message();
+        void write_message(TPCANMsg msg);
+        vector<msgRecu> get_value(TPCANMsg toSend);
+
+        //==================POSITION MODE==================
+
+        double read_position();
+        void def_positionAbsolue(int id);
+        bool init_asservissementPosition(int id);
+        void set_relativePosition(int id, int uInput);
+        void set_absolutePosition(int id, int uInput);
+        void control_allPosition(double wantPosX, double wantPosY);
+        void checkEndTarget(uint8_t* status, int motId);
+        void checkAllEndTarget();
+        void get_manualWantedPos(double *wantPosX , double *wantPosY);
+        void set_manualUserPosition(int id);
+
+        //==================TORQUE MODE==================
+
+        bool init_asservissementForce(int id);
+        void set_force(double force, int id);
+        void set_manual_torque(int id);
+        void set_torque(uint16_t userInput, int id);
+        void mise_en_position0_effecteur();
+        
+        //==================ECRITURE/LECTURE FICHIER==================
+        
+        void readPos_fichier();
+        void writePos_fichier();
+
+        //==================QUIT==================
+
+        void shutdown(int id);
+        void shutdown_all();
+        //void signal_callback_handler(int signum);
 
 
-
+        //==================PARTIE GRAPHIQUE==================
         // [!] A IMPLEMENTER PAR OLIVIER
         // va etre lance dans un thread
         void runControlMoteur();
-    
+
 
     public:
 
@@ -37,30 +143,19 @@ class ControlMoteur {
         // affecte a positionX et positionY la position de l'effecteur en mm
         void getPosition(double &positionX, double &positionY);
 
-        // [!] A COMPLETER PAR OLIVIER
+    
         // switch entre l'Asservissement en POSITION et HAPTIC
         void changeAsservissement();
-
-        void setAsservissementToHAPTIC();
-
-        void setAsservissementToPOSTION();
-
         Asservissement getAsservissement() {return asservissement;}
 
         // switch entre allume et eteint les moteurs
         void changePower();
-
-        // [!] A COMPLETER PAR OLIVIER
         void setPowerToOff();
-
-        // [!] A COMPLETER PAR OLIVIER
         void setPowerToOn();
-
         bool getPowerOn() {return powerOn;}
 
         
 
-        // [!] A COMPLETER PAR OLIVIER
         // dit d'aller a l'effecteur d'aller en (positionX,positionY) en mm
         void goTo(double positionX,double positionY);
 
@@ -90,13 +185,6 @@ class ControlMoteur {
         // fonction blocante qui attend que le thread se finisse
         // /!\ appeler qu'une fois
         void waitEnd();
-
-
-
-
-
-
-
 } ;
 
 

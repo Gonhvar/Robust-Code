@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 
-
 void Model::_model_position_direct(double size_cable_1, double size_cable_2, char utilisation[2], double *pos_X, double *pos_Y) {
     //A IMPLEMENTER
 }
@@ -21,7 +20,7 @@ double Model::_size_cable_to_increment(double size_cable) {
 
 }
 
-void Model::increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,double *increment_moteur_A, double *increment_moteur_B, double *increment_moteur_C) {
+void Model::increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,int *increment_moteur_A, int *increment_moteur_B, int *increment_moteur_C) {
     double size_cable_A;
     double size_cable_B;
     double size_cable_C;

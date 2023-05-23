@@ -1113,13 +1113,13 @@ void mode_selection(){
             set_absolutePosition(COBID_CAN2_SDO, 0);
             set_absolutePosition(COBID_CAN3_SDO, 0);
 
-
             //Control en position de toutes les cartes EPOS
             control_allPosition();
             break;
 
         case 2 : 
             //CONTROL EN COUPLE
+            init_Torque(COBID_CAN1_SDO);
             init_Torque(COBID_CAN2_SDO);
             init_Torque(COBID_CAN3_SDO);
             sleep(1);

@@ -25,6 +25,7 @@ void Rasberry::runRasberry() {
     // actualiser dans l'asservissement coupleX, coupleY
     const char* devicePath = "/dev/ttyACM0";
     std::ifstream serial(devicePath);
+    std::string line;
 
     if (!serial) {
         std::cerr << "Attention ! Raspberry non-connecté !" << std::endl;
@@ -34,31 +35,41 @@ void Rasberry::runRasberry() {
     while (true)
     {
         //printf("Debug : runRasberry\n");
-        std::string line;
-        std::string token;
-        const char* seperator = " "; // space  
-        char *ptr; 
-
         while (std::getline(serial, line)) {
             //Ici, s'occuper des données reçues
             //std::cout << line << std::endl;
-            char* cstr = new char[line.length() + 1];
-            std::strcpy(cstr, line.c_str());
+            splitString(&line);
 
-            ptr = std::strtok(cstr, seperator);
-
-            while (ptr != NULL)  
-            {  
-                std::cout << ptr  << std::endl; // print the string token  
-                ptr = strtok (NULL, seperator);
-            }  
-
-            delete[] cstr;
+            //Faire la conversion des résultats ici 
+            coupleX = potX;
+            coupleY = potY;
+            //std::cout <<  "Couple X : " << coupleX << " | CoupleY : " << coupleY << std::endl;
         }
     }
     serial.close();
 }
 
+std::vector<int> Rasberry::splitString(std::string* line){
+    char *ptr; 
+    char* cstr = new char[line->length() + 1];
+    std::strcpy(cstr, line->c_str());
+    int i=0;
+
+    const char* seperator = " "; // space  
+    ptr = std::strtok(cstr, seperator);
+
+    while(ptr!=NULL){
+        //std::cout <<  ptr  << std::endl; // print the string token  
+        if(i==0){
+            potX = std::stoi(ptr);
+        }else{
+            potY = std::stoi(ptr);
+        }
+        i++;
+        ptr = strtok (NULL, seperator);
+    }
+    delete[] cstr;
+}
 
 void Rasberry::getCouples(double &coupleX, double &coupleY) {
     //std::cout << "Rasberry::getCouples" << std::endl;

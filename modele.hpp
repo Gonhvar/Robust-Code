@@ -158,7 +158,7 @@ class Model {
 
         // ---FONCTIONS---------------------------
 
-        static void increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,double *increment_moteur_A, double *increment_moteur_B, double *increment_moteur_C);
+        static void increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,int *increment_moteur_A, int *increment_moteur_B, int *increment_moteur_C);
 
         // calcul le couple a mettre dans les moteurs (couple_moteur) pour obtenir une 
         // entrees : 
@@ -172,7 +172,6 @@ class Model {
         
         // renvoie si l'effecteur est dans le triangle forme par les positions des sorties des fils des moteurs
         static bool in_triangle(const double position_effecteur[2]);
-
 
 };
 
