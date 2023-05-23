@@ -1023,12 +1023,16 @@ void mode_selection(){
 
         case 2 : 
             //CONTROL EN COUPLE
+            init_Torque(COBID_CAN1_SDO);
             init_Torque(COBID_CAN2_SDO);
             init_Torque(COBID_CAN3_SDO);
             sleep(1);
             
+            //std::cout << "passe init" << std::endl;
+            set_torque(300, COBID_CAN1_SDO);
             set_torque(200, COBID_CAN2_SDO);
             set_torque(200, COBID_CAN3_SDO);
+            cin >> wait;
             break;
 
         case 3 :
