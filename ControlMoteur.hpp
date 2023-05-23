@@ -69,15 +69,20 @@ class ControlMoteur {
         std::thread *controlMoteurThread;
 
         static int nombreInstance; //garantie qu'on instancie qu'une fois, on utilise pas singleton patern car thread
+        
+        bool enDeplacement;
 
-        float positionX; //mm
-        float positionY; //mm
+        double wantedPositionX; //mm
+        double wantedPositionY; //mm
 
-        float forceX; //N
-        float forceY; //N
+        double positionX; //mm
+        double positionY; //mm
 
-        float raideur;
-        float viscosite;
+        double forceX; //N
+        double forceY; //N
+
+        double raideur;
+        double viscosite;
 
         //================INITIALISATION_PEAK================
         TPCANHandle find_channel();
@@ -143,7 +148,7 @@ class ControlMoteur {
         // affecte a positionX et positionY la position de l'effecteur en mm
         void getPosition(double &positionX, double &positionY);
 
-    
+
         // switch entre l'Asservissement en POSITION et HAPTIC
         void changeAsservissement();
         Asservissement getAsservissement() {return asservissement;}

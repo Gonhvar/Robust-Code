@@ -16,9 +16,6 @@
 TPCANHandle channelUsed = PCAN_USBBUS1;
 TPCANBaudrate baudrateUsed = PCAN_BAUD_1M;
 
-//Position de l'effecteur (absolue)
-float abs_posX = 400, abs_posY = 250;
-
 int ControlMoteur::nombreInstance =0;
 
 
@@ -673,7 +670,7 @@ void ControlMoteur::set_absolutePosition(int id, int uInput){
 
 //Main du position Mode
 /**
- * @brief Fonction contrôlant toutes les EPOS4 en fonction de leur position relative
+ * @brief envoyer la position de l'effecteur a la position voulu
  * 
  * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
  */
@@ -686,8 +683,8 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     int val_motor3 = 0;
 
     //On recupére la valeur en points de chaque incrémentation en mm
-    int ptsDeplacementX = (wantPosX-abs_posX)*POINTS_PAR_MM;
-    int ptsDeplacementY = (wantPosY-abs_posY)*POINTS_PAR_MM;
+    int ptsDeplacementX = (wantPosX-positionX)*POINTS_PAR_MM;
+    int ptsDeplacementY = (wantPosY-positionY)*POINTS_PAR_MM;
 
     //On trouve quel est le deplacement le plus long selon X ou Y
     if(ptsDeplacementX>ptsDeplacementY){
@@ -696,7 +693,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     else{
         nb_points = abs(ptsDeplacementY);
     }
-
+     
     // printf("MAX POINTS : %d points\n", nb_points);
     // printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
     
@@ -705,8 +702,8 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
 
     //Valeur de base de la position de l'effecteur
-    wantPosX = abs_posX;
-    wantPosY = abs_posY;
+    wantPosX = positionX;
+    wantPosY = positionY;
 
     //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
     //printf("En %d points\n", nb_points);
@@ -733,21 +730,21 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
         //std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
         //===========================================================FIN
-
         //Envoie des données dans les moteurs
         set_relativePosition(COBID_CAN1_SDO, val_motor1);
         set_relativePosition(COBID_CAN2_SDO, val_motor2);
         set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
 
-        //================================ A METTRE EN CHILD PROCESS
+
+        //================================ 
         //Attente que tous les moteurs soit arrivé 
         checkAllEndTarget();
-        //================================ A METTRE EN CHILD PROCESS
+        //================================ 
         
         //On met à jour la position de l'effecteur
-        abs_posX = wantPosX;
-        abs_posY = wantPosY;
+        positionX = wantPosX;
+        positionY = wantPosY;
 
         // calcul fps
         end_time = clock();
@@ -812,10 +809,12 @@ void ControlMoteur::checkAllEndTarget(){
 
     //Check si toutes les cartes sont arrivé à destination sinon recheck
     while(status != 0b111){
+
+        //std::cout << "Status : "<< status << std::endl;
         switch(status){
             case 0b000 :
                 //Demander à chaques cartes
-                //checkEndTarget(&status, COBID_CAN1_SDO);
+                checkEndTarget(&status, COBID_CAN1_SDO);
                 checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 status = status | 0b100;
@@ -852,6 +851,8 @@ void ControlMoteur::checkAllEndTarget(){
                 std::cout << "Erreur dans le recheck des valeurs de STATUSWORD\n";
         }
     }
+
+    enDeplacement = false;
 }
 
 
@@ -864,7 +865,7 @@ void ControlMoteur::checkAllEndTarget(){
  * @param wantPosY (float) : Position voulue en Y
  */
 void ControlMoteur::get_manualWantedPos(double *wantPosX , double *wantPosY){
-    std::cout << "Position effecteur actuelle en X : " << abs_posX << " et en Y : " << abs_posY << std::endl;  
+    std::cout << "Position effecteur actuelle en X : " << positionX << " et en Y : " << positionY << std::endl;  
     do{
         std::cout << "Donnez une valeur X entre 0 et 800mm" << std::endl;
         std::cin >> *wantPosX;
@@ -1076,8 +1077,8 @@ void ControlMoteur::readPos_fichier(){
     pos = s.find(delimiter);
     token[1] = s.substr(0, pos);
 
-    abs_posX = stof(token[0]);
-    abs_posY =stof(token[1]);
+    positionX = stof(token[0]);
+    positionY =stof(token[1]);
 }
 
 /**
@@ -1087,7 +1088,7 @@ void ControlMoteur::readPos_fichier(){
 void ControlMoteur::writePos_fichier(){
     ofstream myfile;
     myfile.open ("pos_effecteur.txt");
-    myfile << abs_posX << '|' << abs_posY << endl;
+    myfile << positionX << '|' << positionY << endl;
     myfile.close();
 }
 
@@ -1127,8 +1128,6 @@ void ControlMoteur::shutdown_all(){
 
 
 
-
-
 //==================PARTIE GRAPHIQUE==================
 
 ControlMoteur::ControlMoteur() {
@@ -1144,11 +1143,13 @@ ControlMoteur::ControlMoteur() {
     // [!] POUR TESTS :
     this->forceX = 15;
     this->forceY = -9.6;
-    this->positionX = 5 ;
-    this->positionY =-3.2 ;
+    this->positionX = 400;
+    this->positionY = 250;
 
     //Initialisation du PEAK
     initialise_CAN_USB();
+    
+    enDeplacement = false;
 
     controlMoteurThread = new std::thread(&ControlMoteur::runControlMoteur,this);
 }
@@ -1157,9 +1158,26 @@ ControlMoteur::ControlMoteur() {
 void ControlMoteur::runControlMoteur() {
     // FAIRE ICI L'ASSERVISSEMENT ~100 Hz ?
     // actualiser dans l'asservissement forceX, forceY, positionX, positionY
-
     while (true)
     {
+        //= positionX
+        //= positionY
+
+        switch(asservissement){
+            case POSITION :
+                if(enDeplacement){
+                    std::cout << "Debug: runControlMoteur" << std::endl;
+                    control_allPosition(wantedPositionX, wantedPositionY);
+                }
+                break;
+            
+            case HAPTIC :
+                //faire truc ici 
+                break;
+
+            default : 
+                break;
+        }
         //printf("Debug : ControlMoteur\n");
     }
 } 
@@ -1244,10 +1262,12 @@ void ControlMoteur::setPowerToOn() {
 //==============UTILISER LES MOTEURS=================== 
 
 void ControlMoteur::goTo(double positionX,double positionY) {
+    wantedPositionX = positionX;
+    wantedPositionY = positionY;
+
     if (asservissement==POSITION) {
         printf("ControlMoteur::Debug : va vers la position %lf mm %lf mm\n",positionX,positionY);
-        control_allPosition(positionX, positionY);
-        printf("ControlMoteur::Debug : Déplacement fini\n");
+        enDeplacement = true;
     } else {
         printf("[!] impossible d'aller a une positon en mode haptique\n");
     }
