@@ -2,6 +2,9 @@
 #define RASBERRY
 
 #include <thread>
+#include <iostream>
+#include <cstdio>
+#include <fstream>
 
 
 // /!\ A instancier une seule fois

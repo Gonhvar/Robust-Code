@@ -22,11 +22,24 @@ Rasberry::Rasberry() {
 void Rasberry::runRasberry() {
     // FAIRE ICI L'ASSERVISSEMENT ~100 Hz ?
     // actualiser dans l'asservissement coupleX, coupleY
+    const char* devicePath = "/dev/ttyACM0";
+    std::ifstream serial(devicePath);
+
+    if (!serial) {
+        std::cerr << "Attention ! Raspberry non-connecté !" << std::endl;
+        //return 1;
+    }
 
     while (true)
     {
         //printf("Debug : runRasberry\n");
+        std::string line;
+        while (std::getline(serial, line)) {
+            //Ici, s'occuper des données reçues
+            std::cout << line << std::endl;
+        }
     }
+    serial.close();
 }
 
 
