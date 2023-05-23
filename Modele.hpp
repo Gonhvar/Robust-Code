@@ -42,7 +42,7 @@ typedef struct _Point
 } Point;
 
 typedef struct _PointD
-{
+{Model
     double x; //en mm
     double y; //en mm
 } PointD;

@@ -134,6 +134,12 @@ class Model {
         static const int MOTEUR_III_POSITION_X = 800; //[!] A CHANGER
         static const int MOTEUR_III_POSITION_Y = 0; //[!] A CHANGER
 
+        static const int ZONE_TRAVAIL_MIN_X = 0; //[!] A CHANGER
+        static const int ZONE_TRAVAIL_MAX_X = 800; //[!] A CHANGER
+
+        static const int ZONE_TRAVAIL_MIN_Y = 0; //[!] A CHANGER
+        static const int ZONE_TRAVAIL_MAX_Y = 600; //[!] A CHANGER
+
         static const int RAYON_ROUE = 9; //"[mm]"
         static constexpr double RAPPORT_REDUCTON = (16.0/60.0);//  entree/sortie
         static const int INCREMENTS_PAR_TOUR = 512;
