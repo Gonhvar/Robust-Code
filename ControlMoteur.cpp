@@ -514,7 +514,7 @@ void ControlMoteur::def_positionAbsolue(int id){
     write_message(msg);
 
     usleep(1000);
-
+    std::cout << "Mid calibration" << std::endl;
     //Controlword (Switch on & Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
@@ -532,7 +532,7 @@ void ControlMoteur::def_positionAbsolue(int id){
     //======================================== REVOIR
     sleep(1);
     //======================================== REVOIR
-
+    std::cout << "Aprés calibration" << std::endl;
     //Controlword (Halt homing)
     msg_data[0] = 0x01;
     msg_data[1] = 0x1F;
@@ -698,8 +698,12 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     // printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
     
     //Calcul du deplacement à chaque incrémentation [mm]
-    deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
-    deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
+    // deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
+    // deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
+
+
+    deplacementIncrX = (wantPosX-positionX)/nb_points;
+    deplacementIncrY = (wantPosY-positionY)/nb_points;
 
     //Valeur de base de la position de l'effecteur
     wantPosX = positionX;
@@ -709,37 +713,45 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     //printf("En %d points\n", nb_points);
 
     // pour calcul fps
-    clock_t start_time= clock();clock_t end_time;
-    double fps;
-
+    // clock_t start_time= clock();clock_t end_time;
+    // double fps;
+    
+    //On met le moteur 1 en force (10N)
+    //set_torque(300, COBID_CAN1_SDO);
 
     for(int i=0; i<nb_points; i++){
         //On incrémente en fonction du nombre de points
-        if(i<= abs(ptsDeplacementX)){
+        // if(i<= abs(ptsDeplacementX)){
             wantPosX += deplacementIncrX;
-        }
+        //}
 
-        if(i<=abs(ptsDeplacementY)){
+        // if(i<=abs(ptsDeplacementY)){
             wantPosY +=deplacementIncrY;
-        }
+        //}
         
         //Calcul des positions voulue avec wantPosX et wantPosY :
         
         //===========================================================A FAIRE
-        //std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
+        std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
         Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
-        //std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
+        std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
         //===========================================================FIN
-        //Envoie des données dans les moteurs
-        // set_relativePosition(COBID_CAN1_SDO, val_motor1);
-        // set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        // set_relativePosition(COBID_CAN3_SDO, val_motor3);
+        //Envoi les données dans les moteurs
+
+        //set_relativePosition(COBID_CAN1_SDO, val_motor1);
+        set_relativePosition(COBID_CAN2_SDO, val_motor2);
+        set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
+
+        //set_absolutePosition(COBID_CAN2_SDO, val_motor2);
+        //set_absolutePosition(COBID_CAN3_SDO, val_motor3);
 
 
         //================================ 
         //Attente que tous les moteurs soit arrivé 
-        checkAllEndTarget();
+        //checkAllEndTarget();
+        usleep(100);
+
         //================================ 
         
         //On met à jour la position de l'effecteur
@@ -750,15 +762,16 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         printf("positionY %lf\n",positionY);
 
         // calcul fps
-        end_time = clock();
-        fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
-        fps=1/fps;
-        start_time = clock();
-        printf("Les fps sont : deplacements %f par secondes\n", fps);
-        printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
-        printf("\n");
-
+        // end_time = clock();
+        // fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+        // fps=1/fps;
+        // start_time = clock();
+        // printf("Les fps sont : deplacements %f par secondes\n", fps);
+        // printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
+        // printf("\n");
     }
+
+    enDeplacement = false;
 }
 
 //Autres 
@@ -817,7 +830,7 @@ void ControlMoteur::checkAllEndTarget(){
         switch(status){
             case 0b000 :
                 //Demander à chaques cartes
-                checkEndTarget(&status, COBID_CAN1_SDO);
+                //checkEndTarget(&status, COBID_CAN1_SDO);
                 checkEndTarget(&status, COBID_CAN2_SDO);
                 checkEndTarget(&status, COBID_CAN3_SDO);
                 status = status | 0b100;
@@ -854,8 +867,6 @@ void ControlMoteur::checkAllEndTarget(){
                 std::cout << "Erreur dans le recheck des valeurs de STATUSWORD\n";
         }
     }
-
-    enDeplacement = false;
 }
 
 
@@ -1147,7 +1158,7 @@ ControlMoteur::ControlMoteur() {
     this->forceX = 15;
     this->forceY = -9.6;
     this->positionX = 400;
-    this->positionY = 250;
+    this->positionY = 300;
 
     //Initialisation du PEAK
     initialise_CAN_USB();
@@ -1240,7 +1251,7 @@ void ControlMoteur::setPowerToOn() {
     switch(asservissement){
         case POSITION :
             //Mode position
-            init_asservissementPosition(COBID_CAN1_SDO);
+            init_asservissementForce(COBID_CAN1_SDO);
             init_asservissementPosition(COBID_CAN2_SDO);
             wait = init_asservissementPosition(COBID_CAN3_SDO);
             while(wait);
@@ -1296,13 +1307,16 @@ void ControlMoteur::setViscosite(double viscosite) {
 void ControlMoteur::reset() {
     //Etalonner
     printf("ControlMoteur::Debug : reset\n");
-    mise_en_position0_effecteur();
+    //mise_en_position0_effecteur();
+
+    def_positionAbsolue(COBID_CAN1_SDO);
+    def_positionAbsolue(COBID_CAN2_SDO);
+    def_positionAbsolue(COBID_CAN3_SDO);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-
     set_torque(200, COBID_CAN1_SDO);
     set_torque(200, COBID_CAN2_SDO);
     set_torque(200, COBID_CAN3_SDO);
