@@ -1030,7 +1030,7 @@ void mode_selection(){
             
             //std::cout << "passe init" << std::endl;
             set_torque(200, COBID_CAN1_SDO);
-            set_torque(200, COBID_CAN2_SDO);
+            set_torque(250, COBID_CAN2_SDO);
             set_torque(200, COBID_CAN3_SDO);
             cin >> wait;
             break;
