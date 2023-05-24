@@ -731,9 +731,9 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
         //===========================================================FIN
         //Envoie des données dans les moteurs
-        set_relativePosition(COBID_CAN1_SDO, val_motor1);
-        set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        set_relativePosition(COBID_CAN3_SDO, val_motor3);
+        // set_relativePosition(COBID_CAN1_SDO, val_motor1);
+        // set_relativePosition(COBID_CAN2_SDO, val_motor2);
+        // set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
 
 
@@ -745,6 +745,9 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //On met à jour la position de l'effecteur
         positionX = wantPosX;
         positionY = wantPosY;
+
+        printf("positionX %lf\n",positionX);
+        printf("positionY %lf\n",positionY);
 
         // calcul fps
         end_time = clock();

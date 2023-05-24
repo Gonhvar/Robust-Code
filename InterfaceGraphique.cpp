@@ -654,3 +654,10 @@ void InterfaceGraphique::detruireHaptiqueBox() {
     setRaideurBox = nullptr;
 
 }
+
+void InterfaceGraphique::warning(std::string typeDonnee, std::string data) {
+    ofstream myfile;
+    myfile.open (data);
+    myfile << (data+" -> "+typeDonnee) <<std::endl;
+    myfile.close();
+}

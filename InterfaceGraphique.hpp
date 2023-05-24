@@ -19,6 +19,8 @@ class InterfaceGraphique {
 
         const static int PERIODE_RAFRAICHISSEMENT = 30; // en ms
 
+
+
         // --- STRUCT ---
 
         // permet d'envoyer des donnes aux callback
@@ -203,40 +205,45 @@ class InterfaceGraphique {
         // /!\ appeler qu'une fois
         void waitEnd();
 
+        // inscrit data dans console et un fichier
+        // typeDonnee : donne le nom au fichier
+        // data : donne a rajouter au fichier
+        void warning(std::string typeDonnee, std::string data);
 
 
-    static gboolean callbackWrapper_Rafraichir(gpointer data);
+
+        static gboolean callbackWrapper_Rafraichir(gpointer data);
 
 
 
 
 
-    // --- ENSEMBLE CALLBACK --- :
+        // --- ENSEMBLE CALLBACK --- :
 
 
-    // mettre this en data
-    static void callBack_ChangeModeButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_ChangeModeButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_ChangePowerButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_ChangePowerButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_GoToButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_GoToButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_SetVitesseButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_SetVitesseButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_SetRaideurButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_SetRaideurButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_SetViscositeButton(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_SetViscositeButton(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_Reset(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_Reset(GtkWidget* button, gpointer data);
 
-    // mettre this en data
-    static void callBack_Disco(GtkWidget* button, gpointer data);
+        // mettre this en data
+        static void callBack_Disco(GtkWidget* button, gpointer data);
 
 };
 
