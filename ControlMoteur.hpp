@@ -45,6 +45,10 @@ using namespace std;
 #define HOMING_METHOD 0x6098
 #define TORQUE_OFFSET 0x60B2
 
+#define ACTUALPOSITION 0x6064
+#define ACTUALVELOCITY 0x30D3
+#define ACTUALTORQUE 0x6077
+
 
 // CONSTANTES MOTEUR
 #define MOTOR_RATED_TORQUE 75.7
@@ -97,11 +101,10 @@ class ControlMoteur {
         msgRecu get_message(TPCANMsg received);
         vector<msgRecu> read_message();
         void write_message(TPCANMsg msg);
-        vector<msgRecu> get_value(TPCANMsg toSend);
 
         //==================POSITION MODE==================
 
-        double read_position();
+        
         void def_positionAbsolue(int id);
         bool init_asservissementPosition(int id);
         void set_relativePosition(int id, int uInput);
@@ -111,7 +114,7 @@ class ControlMoteur {
         void checkAllEndTarget();
         void get_manualWantedPos(double *wantPosX , double *wantPosY);
         void set_manualUserPosition(int id);
-
+        
         //==================TORQUE MODE==================
 
         bool init_asservissementForce(int id);
@@ -131,6 +134,11 @@ class ControlMoteur {
         void shutdown_all();
         //void signal_callback_handler(int signum);
 
+        //==================READ DATA==================
+        int read_torque(int id);
+        int read_velocity(int id);
+        int read_position(int id);
+        vector<msgRecu> get_value(TPCANMsg toSend);
 
         //==================PARTIE GRAPHIQUE==================
         // [!] A IMPLEMENTER PAR OLIVIER

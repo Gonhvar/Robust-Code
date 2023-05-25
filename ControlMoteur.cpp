@@ -417,73 +417,9 @@ void ControlMoteur::write_message(TPCANMsg msg){
     usleep(600);
 }
 
-/**
- * @brief Va chercher et renvoie la valeur de l'index demandé
- * 
- * @param toSend (TPCANMsg) : Valeur de l'index 
- * @return vector<msgRecu> : Array des messages lus 
- */
-vector<msgRecu> ControlMoteur::get_value(TPCANMsg toSend){
-    //----------------------------------
-    //DATA[0] Toujours égale à 0x40 si on veut read une valeur
-    toSend.DATA[0] = R;
-    write_message(toSend);
-
-    //-------------------------------------------
-    usleep(1000);  //En micro-secondes
-    //-------------------------------------------
-
-    return (read_message());
-}
-
-
 
 //==================POSITION MODE==================
 
-/**
- * fonction bloquante
- * position en mm
- * [!] A COMPLETER
-*/
-double ControlMoteur::read_position() {
-    uint8_t msg_data[4];
-    TPCANMsg msg;
-    
-    init_msg_SDO(&msg, COBID_CAN3_SDO, R, 0x6064, 0x00, msg_data);
-
-        msg.DATA[0] = R;
-    write_message(msg);
-
-    //-------------------------------------------
-    usleep(1000);  //En micro-secondes
-    //-------------------------------------------
-
-    vector<msgRecu> get = read_message();
-    int increment =0;
-
-    for(msgRecu g : get) {
-        //Si ce n'est pas un message renvoyé aprés ecriture
-        if(!g.isConfirmReception){
-            switch(g.taille){
-                case R_4B :
-                    //4 octets
-                    increment=g.valData;
-                    break;
-                    
-                default : 
-                    printf("Erreur taille du message\n");
-            }
-            printf("\n---------------\n");
-                
-        }
-    }
-        
-
-    double position=increment-10000;
-
-
-    return position;
-}
 
 
 //Init
@@ -493,10 +429,12 @@ double ControlMoteur::read_position() {
  * @param id (int) : COB-ID à spécifier
  */
 void ControlMoteur::def_positionAbsolue(int id){
+
     TPCANMsg msg;
     uint8_t msg_data[4];
     bzero(msg_data, 4);
 
+    // /!\ a faire avec moteurs éteints
     //Modes of operation (Homing Mode)
     msg_data[0] = 0x06;
     init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
@@ -514,7 +452,7 @@ void ControlMoteur::def_positionAbsolue(int id){
     write_message(msg);
 
     usleep(1000);
-    std::cout << "Mid calibration" << std::endl;
+    //std::cout << "Mid calibration" << std::endl;
     //Controlword (Switch on & Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
@@ -530,14 +468,24 @@ void ControlMoteur::def_positionAbsolue(int id){
     write_message(msg);
 
     //======================================== REVOIR
-    sleep(1);
+    //sleep(1);
+    usleep(100);
     //======================================== REVOIR
-    std::cout << "Aprés calibration" << std::endl;
+    //std::cout << "Aprés calibration" << std::endl;
     //Controlword (Halt homing)
     msg_data[0] = 0x01;
     msg_data[1] = 0x1F;
     init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
+
+    //Controlword (shutdown)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x06;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    //Eteindre les moteurs pour eviter tous problémes
+    powerOn = false;
 }
 
 /**
@@ -601,7 +549,7 @@ void ControlMoteur::set_relativePosition(int id, int uInput){
     //On limite à 2 Bytes
     msg_data[0] = 0x00;
     msg_data[1] = 0x00;
-    msg_data[2] = 0x0;//(uInput>>8)%256;
+    msg_data[2] = (uInput>>8)%256;
     msg_data[3] = uInput;
 
     //printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
@@ -639,10 +587,9 @@ void ControlMoteur::set_absolutePosition(int id, int uInput){
     //printf("uInput n°%d : %hhx\n %d\n",id, uInput, uInput);
     
     //Target position
-    //On limite à 2 Bytes
-    msg_data[0] = 0x00;
-    msg_data[1] = 0x00;
-    msg_data[2] = 0x0;//(uInput>>8)%256;
+    msg_data[0] = (uInput>>24)%256;
+    msg_data[1] = (uInput>>16)%256;
+    msg_data[2] = (uInput>>8)%256;
     msg_data[3] = uInput;
 
     //printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
@@ -682,20 +629,23 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     int val_motor2 = 0;
     int val_motor3 = 0;
 
+    double read_value = 0;
+    std::cout << "Start Control all position" << std::endl;
+
     //On recupére la valeur en points de chaque incrémentation en mm
-    int ptsDeplacementX = (wantPosX-positionX)*POINTS_PAR_MM;
-    int ptsDeplacementY = (wantPosY-positionY)*POINTS_PAR_MM;
+    int ptsDeplacementX = abs(wantPosX-positionX)*POINTS_PAR_MM;
+    int ptsDeplacementY = abs(wantPosY-positionY)*POINTS_PAR_MM;
 
     //On trouve quel est le deplacement le plus long selon X ou Y
     if(ptsDeplacementX>ptsDeplacementY){
-        nb_points = abs(ptsDeplacementX);
+        nb_points = (ptsDeplacementX);
     }
     else{
-        nb_points = abs(ptsDeplacementY);
+        nb_points = (ptsDeplacementY);
     }
      
     // printf("MAX POINTS : %d points\n", nb_points);
-    // printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
+    printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
     
     //Calcul du deplacement à chaque incrémentation [mm]
     // deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
@@ -710,7 +660,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     wantPosY = positionY;
 
     //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
-    //printf("En %d points\n", nb_points);
+    printf("En %d points\n", nb_points);
 
     // pour calcul fps
     // clock_t start_time= clock();clock_t end_time;
@@ -739,20 +689,23 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //Envoi les données dans les moteurs
 
         //set_relativePosition(COBID_CAN1_SDO, val_motor1);
-        set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        set_relativePosition(COBID_CAN3_SDO, val_motor3);
+
+        //set_relativePosition(COBID_CAN2_SDO, val_motor2);
+        //set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
 
-        //set_absolutePosition(COBID_CAN2_SDO, val_motor2);
-        //set_absolutePosition(COBID_CAN3_SDO, val_motor3);
+        set_absolutePosition(COBID_CAN2_SDO, 8000);
+        // set_absolutePosition(COBID_CAN3_SDO, val_motor3);
 
 
         //================================ 
         //Attente que tous les moteurs soit arrivé 
         //checkAllEndTarget();
-        usleep(100);
+        usleep(2000);
 
         //================================ 
+        read_value = read_position(COBID_CAN2_SDO);
+        std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
         
         //On met à jour la position de l'effecteur
         positionX = wantPosX;
@@ -1138,6 +1091,123 @@ void ControlMoteur::shutdown_all(){
 }
 
 
+//==================READ DATA==================
+
+int ControlMoteur::read_torque(int id) {
+
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+    
+    init_msg_SDO(&msg, id, R, ACTUALTORQUE, 0x00, msg_data);
+    vector<msgRecu> get = get_value(msg);
+
+    int increment =0;
+    for(msgRecu g : get) {
+        //Si ce n'est pas un message renvoyé aprés ecriture
+        if(!g.isConfirmReception){
+            switch(g.taille){
+                case R_4B :
+                    //4 octets
+                    //std::cout << "Lecture de la position : " << std::endl;
+                    increment=g.valData;
+                    break;
+                    
+                default : 
+                    printf("Erreur taille du message\n");
+            }
+            printf("\n---------------\n");
+        }
+    }
+
+    //En valeur /1000*Motor rated torque
+    return increment;
+}
+
+int ControlMoteur::read_velocity(int id) {
+
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+    
+    //Sub index = 0x01
+    init_msg_SDO(&msg, id, R, ACTUALVELOCITY, 0x01, msg_data);
+    vector<msgRecu> get = get_value(msg);
+
+    int increment =0;
+    for(msgRecu g : get) {
+        //Si ce n'est pas un message renvoyé aprés ecriture
+        if(!g.isConfirmReception){
+            switch(g.taille){
+                case R_4B :
+                    //4 octets
+                    //std::cout << "Lecture de la position : " << std::endl;
+                    increment=g.valData;
+                    break;
+                    
+                default : 
+                    printf("Erreur taille du message\n");
+            }
+            printf("\n---------------\n");
+        }
+    }
+
+    //En rpm
+    return increment;
+}
+
+/**
+ * [!] A COMPLETER
+*/
+int ControlMoteur::read_position(int id) {
+
+    uint8_t msg_data[4];
+    TPCANMsg msg;
+    
+    init_msg_SDO(&msg, id, R, ACTUALPOSITION, 0x00, msg_data);
+    vector<msgRecu> get = get_value(msg);
+
+    int increment =0;
+    for(msgRecu g : get) {
+        //Si ce n'est pas un message renvoyé aprés ecriture
+        if(!g.isConfirmReception){
+            switch(g.taille){
+                case R_4B :
+                    //4 octets
+                    std::cout << "Lecture de la position : " << g.valData << std::endl;
+                    increment=g.valData;
+                    break;
+                    
+                default : 
+                    printf("Erreur taille du message\n");
+            }
+            printf("\n---------------\n");
+        }
+    }
+    
+    double position = increment;
+
+    //std::cout << "Position de " << id << " est " << position << std::endl;
+    return position;
+}
+
+/**
+ * @brief Va chercher et renvoie la valeur de l'index demandé
+ * 
+ * @param toSend (TPCANMsg) : Valeur de l'index 
+ * @return vector<msgRecu> : Array des messages lus 
+ */
+vector<msgRecu> ControlMoteur::get_value(TPCANMsg toSend){
+    //----------------------------------
+    //DATA[0] Toujours égale à 0x40 si on veut read une valeur
+    toSend.DATA[0] = R;
+    write_message(toSend);
+
+    //-------------------------------------------
+    usleep(1000);  //En micro-secondes
+    //-------------------------------------------
+
+    return (read_message());
+}
+
 
 
 
@@ -1179,6 +1249,9 @@ void ControlMoteur::runControlMoteur() {
 
         switch(asservissement){
             case POSITION :
+                //positionX = read_position(COBID_CAN2_SDO);
+                //positionY = read_position(COBID_CAN3_SDO);
+
                 if(enDeplacement){
                     std::cout << "Debug: runControlMoteur" << std::endl;
                     control_allPosition(wantedPositionX, wantedPositionY);
@@ -1317,9 +1390,10 @@ void ControlMoteur::reset() {
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-    set_torque(200, COBID_CAN1_SDO);
-    set_torque(200, COBID_CAN2_SDO);
-    set_torque(200, COBID_CAN3_SDO);
-}
+    // set_torque(200, COBID_CAN1_SDO);
+    // set_torque(200, COBID_CAN2_SDO);
+    // set_torque(200, COBID_CAN3_SDO);
 
+    read_position(COBID_CAN1_SDO);
+}
 
