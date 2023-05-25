@@ -109,7 +109,6 @@ class ControlMoteur {
         bool init_asservissementPosition(int id);
         void set_relativePosition(int id, int uInput);
         void set_absolutePosition(int id, int uInput);
-        void control_allPosition(double wantPosX, double wantPosY);
         void checkEndTarget(uint8_t* status, int motId);
         void checkAllEndTarget();
         void get_manualWantedPos(double *wantPosX , double *wantPosY);
@@ -121,9 +120,7 @@ class ControlMoteur {
         void set_force(double force, int id);
         void set_manual_torque(int id);
         void set_torque(uint16_t userInput, int id);
-        void mise_en_position0_effecteur();
 
-        void setTorqueWithSpeed(int id);
         
         //==================ECRITURE/LECTURE FICHIER==================
         
@@ -147,6 +144,11 @@ class ControlMoteur {
         // va etre lance dans un thread
         void runControlMoteur();
 
+        //==================AVEC MODELES==================
+
+        void control_allPosition(double wantPosX, double wantPosY);
+        void mise_en_position0_effecteur();
+        void findEffectorSpeed();
 
     public:
 
