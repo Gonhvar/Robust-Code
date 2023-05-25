@@ -31,7 +31,7 @@ clean:
 	rm -f *.o
 
 vclean: clean
-	rm -f prog
+	rm -f prog && rm -f pcanbasic_dbg.log
 
 
 
