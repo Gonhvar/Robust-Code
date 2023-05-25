@@ -126,14 +126,14 @@ class Model {
 
         //position des moteurs (debus de la sortie du cable) depuis l'origine en [mm]
         //moteur I : en haut
-        static const int MOTEUR_I_POSITION_X = 400; //[!] A CHANGER
-        static const int MOTEUR_I_POSITION_Y = 600; //[!] A CHANGER
+        static const int MOTEUR_I_POSITION_X = 399; 
+        static const int MOTEUR_I_POSITION_Y = 629; 
         //moteur II : en bas a gauche
-        static const int MOTEUR_II_POSITION_X = 0; //[!] A CHANGER
-        static const int MOTEUR_II_POSITION_Y = 0; //[!] A CHANGER
+        static const int MOTEUR_II_POSITION_X = 10; 
+        static const int MOTEUR_II_POSITION_Y = 119; 
         //moteur III : en bas a droite
-        static const int MOTEUR_III_POSITION_X = 800; //[!] A CHANGER
-        static const int MOTEUR_III_POSITION_Y = 0; //[!] A CHANGER
+        static const int MOTEUR_III_POSITION_X = 790; 
+        static const int MOTEUR_III_POSITION_Y = 120; 
 
         static const int ZONE_TRAVAIL_MIN_X = 0; //[!] A CHANGER
         static const int ZONE_TRAVAIL_MAX_X = 800; //[!] A CHANGER
@@ -143,13 +143,13 @@ class Model {
 
         static const int RAYON_ROUE = 9; //"[mm]"
         static constexpr double RAPPORT_REDUCTON = (16.0/60.0);//  entree/sortie
-        static const int INCREMENTS_PAR_TOUR = 512;
+        static const int INCREMENTS_PAR_TOUR = 2048;
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //defini la valeur a l'originie de OffsetCableI
-        static const int OFFSET_CABLE_I_ORIGINE = 250; 
-        static const int OFFSET_CABLE_II_ORIGINE  = 160; 
-        static const int OFFSET_CABLE_III_ORIGINE = 160; 
+        static const int OFFSET_CABLE_I_ORIGINE = 480; 
+        static const int OFFSET_CABLE_II_ORIGINE  = 420; 
+        static const int OFFSET_CABLE_III_ORIGINE = 380; 
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //A regler grace a setOffsetCable()

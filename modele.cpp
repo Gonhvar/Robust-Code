@@ -31,9 +31,9 @@ void Model::increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effec
 
     _model_position_inverse(pos_X_effecteur,pos_Y_effecteur,&size_cable_A,&size_cable_B,&size_cable_C);
 
-    *increment_moteur_A = _size_cable_to_increment(size_cable_A+OFFSET_CABLE_I);
-    *increment_moteur_B = _size_cable_to_increment(size_cable_B+OFFSET_CABLE_II);
-    *increment_moteur_C = _size_cable_to_increment(size_cable_C+OFFSET_CABLE_III);
+    *increment_moteur_A = _size_cable_to_increment(size_cable_A-OFFSET_CABLE_I);
+    *increment_moteur_B = _size_cable_to_increment(size_cable_B-OFFSET_CABLE_II);
+    *increment_moteur_C = _size_cable_to_increment(size_cable_C-OFFSET_CABLE_III);
 }
 
 

@@ -122,6 +122,8 @@ class ControlMoteur {
         void set_manual_torque(int id);
         void set_torque(uint16_t userInput, int id);
         void mise_en_position0_effecteur();
+
+        void setTorqueWithSpeed(int id);
         
         //==================ECRITURE/LECTURE FICHIER==================
         

@@ -682,9 +682,9 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //Calcul des positions voulue avec wantPosX et wantPosY :
         
         //===========================================================A FAIRE
-        std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
+        //std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
         Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
-        std::cout<< "mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
+        std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
         //===========================================================FIN
         //Envoi les données dans les moteurs
 
@@ -694,18 +694,18 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
 
-        set_absolutePosition(COBID_CAN2_SDO, 8000);
+        //set_absolutePosition(COBID_CAN2_SDO, 8000);
         // set_absolutePosition(COBID_CAN3_SDO, val_motor3);
 
 
         //================================ 
         //Attente que tous les moteurs soit arrivé 
         //checkAllEndTarget();
-        usleep(2000);
+        usleep(100);
 
         //================================ 
-        read_value = read_position(COBID_CAN2_SDO);
-        std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
+        // read_value = read_position(COBID_CAN2_SDO);
+        // std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
         
         //On met à jour la position de l'effecteur
         positionX = wantPosX;
@@ -713,6 +713,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
 
         printf("positionX %lf\n",positionX);
         printf("positionY %lf\n",positionY);
+        printf("\n---------------\n");
 
         // calcul fps
         // end_time = clock();
@@ -1021,6 +1022,12 @@ void ControlMoteur::mise_en_position0_effecteur(){
     positionY = 600; // A verifier ?
 }
 
+void ControlMoteur::setTorqueWithSpeed(int id){
+    
+    //coupleMoteurAsservissemnt();
+    //double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]
+}
+
 
 //==================ECRITURE/LECTURE FICHIER==================
 
@@ -1155,7 +1162,7 @@ int ControlMoteur::read_velocity(int id) {
 }
 
 /**
- * [!] A COMPLETER
+ * 
 */
 int ControlMoteur::read_position(int id) {
 
@@ -1227,8 +1234,9 @@ ControlMoteur::ControlMoteur() {
     // [!] POUR TESTS :
     this->forceX = 15;
     this->forceY = -9.6;
-    this->positionX = 400;
-    this->positionY = 300;
+
+    this->positionX = 420;
+    this->positionY = 150;
 
     //Initialisation du PEAK
     initialise_CAN_USB();
