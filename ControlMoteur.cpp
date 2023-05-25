@@ -34,7 +34,7 @@ TPCANHandle ControlMoteur::find_channel(){
     DWORD channelsCount;
     if (CAN_GetValue(PCAN_NONEBUS, PCAN_ATTACHED_CHANNELS_COUNT, &channelsCount, 4) == PCAN_ERROR_OK)
     {
-        printf("Total of %d channels were found:\n", channelsCount);
+        printf("PCAN : Total of %d channels were found:\n", channelsCount);
         if (channelsCount > 0)
         {
             TPCANChannelInformation* channels = new TPCANChannelInformation[channelsCount];
@@ -131,24 +131,24 @@ void ControlMoteur::initialise_CAN_USB(){
         receptionState = PCAN_PARAMETER_OFF;
         if (CAN_SetValue(channelUsed, PCAN_RECEIVE_STATUS, &receptionState, 4) == PCAN_ERROR_OK)
         {
-            printf("Message reception on channel 0x%X is now disabled.\n", channelUsed);
+            printf("PCAN : Message reception on channel 0x%X is now disabled.\n", channelUsed);
             // do needed work...
-            printf("Operation finished. Enabling communication again...\n");
+            printf("PCAN : Operation finished. Enabling communication again...\n");
             receptionState = PCAN_PARAMETER_ON;
 
         if (CAN_SetValue(channelUsed, PCAN_RECEIVE_STATUS, &receptionState, 4) == PCAN_ERROR_OK)
         {
-            printf("Normal operation on channel 0x%X restablished.\n\n", channelUsed);
+            printf("PCAN : Normal operation on channel 0x%X restablished.\n\n", channelUsed);
             printf("=======FIN INIT=======\n");
         }
         else
-            printf("Message reception of channel 0x%X could not be restablished\n", channelUsed);
+            printf("PCAN : Message reception of channel 0x%X could not be restablished\n", channelUsed);
         }
         else
-            printf("Message reception of channel 0x%X could not be changed\n", channelUsed);
+            printf("PCAN : Message reception of channel 0x%X could not be changed\n", channelUsed);
     }
     else
-        printf("Channel 0x%X could not be initialized\n", channelUsed);
+        printf("PCAN : Channel 0x%X could not be initialized\n", channelUsed);
 }
 
 
@@ -615,118 +615,6 @@ void ControlMoteur::set_absolutePosition(int id, int uInput){
     //Attente obligé 
 }
 
-//Main du position Mode
-/**
- * @brief envoyer la position de l'effecteur a la position voulu
- * 
- * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
- */
-void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
-
-    float deplacementIncrX, deplacementIncrY;
-    int nb_points;
-    int val_motor1 = 0; 
-    int val_motor2 = 0;
-    int val_motor3 = 0;
-
-    double read_value = 0;
-    std::cout << "Start Control all position" << std::endl;
-
-    //On recupére la valeur en points de chaque incrémentation en mm
-    int ptsDeplacementX = abs(wantPosX-positionX)*POINTS_PAR_MM;
-    int ptsDeplacementY = abs(wantPosY-positionY)*POINTS_PAR_MM;
-
-    //On trouve quel est le deplacement le plus long selon X ou Y
-    if(ptsDeplacementX>ptsDeplacementY){
-        nb_points = (ptsDeplacementX);
-    }
-    else{
-        nb_points = (ptsDeplacementY);
-    }
-     
-    // printf("MAX POINTS : %d points\n", nb_points);
-    printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
-    
-    //Calcul du deplacement à chaque incrémentation [mm]
-    // deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
-    // deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
-
-
-    deplacementIncrX = (wantPosX-positionX)/nb_points;
-    deplacementIncrY = (wantPosY-positionY)/nb_points;
-
-    //Valeur de base de la position de l'effecteur
-    wantPosX = positionX;
-    wantPosY = positionY;
-
-    //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
-    printf("En %d points\n", nb_points);
-
-    // pour calcul fps
-    // clock_t start_time= clock();clock_t end_time;
-    // double fps;
-    
-    //On met le moteur 1 en force (10N)
-    //set_torque(300, COBID_CAN1_SDO);
-
-    for(int i=0; i<nb_points; i++){
-        //On incrémente en fonction du nombre de points
-        // if(i<= abs(ptsDeplacementX)){
-            wantPosX += deplacementIncrX;
-        //}
-
-        // if(i<=abs(ptsDeplacementY)){
-            wantPosY +=deplacementIncrY;
-        //}
-        
-        //Calcul des positions voulue avec wantPosX et wantPosY :
-        
-        //===========================================================A FAIRE
-        //std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
-        Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
-        std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
-        //===========================================================FIN
-        //Envoi les données dans les moteurs
-
-        //set_relativePosition(COBID_CAN1_SDO, val_motor1);
-
-        //set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        //set_relativePosition(COBID_CAN3_SDO, val_motor3);
-        
-
-        //set_absolutePosition(COBID_CAN2_SDO, 8000);
-        // set_absolutePosition(COBID_CAN3_SDO, val_motor3);
-
-
-        //================================ 
-        //Attente que tous les moteurs soit arrivé 
-        //checkAllEndTarget();
-        usleep(100);
-
-        //================================ 
-        // read_value = read_position(COBID_CAN2_SDO);
-        // std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
-        
-        //On met à jour la position de l'effecteur
-        positionX = wantPosX;
-        positionY = wantPosY;
-
-        printf("positionX %lf\n",positionX);
-        printf("positionY %lf\n",positionY);
-        printf("\n---------------\n");
-
-        // calcul fps
-        // end_time = clock();
-        // fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
-        // fps=1/fps;
-        // start_time = clock();
-        // printf("Les fps sont : deplacements %f par secondes\n", fps);
-        // printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
-        // printf("\n");
-    }
-
-    enDeplacement = false;
-}
 
 //Autres 
 /**
@@ -994,39 +882,6 @@ void ControlMoteur::set_torque(uint16_t userInput, int id){
     write_message(msg);
 }
 
-
-void ControlMoteur::mise_en_position0_effecteur(){
-    bool wait = true;
-    init_asservissementForce(COBID_CAN1_SDO);
-    init_asservissementForce(COBID_CAN2_SDO);
-    wait = init_asservissementForce(COBID_CAN3_SDO);
-    while(wait);
-    
-    //On tire vers le haut les moteurs
-    set_torque(300, COBID_CAN1_SDO);
-    set_torque(200, COBID_CAN2_SDO);
-    set_torque(200, COBID_CAN3_SDO);
-
-    sleep(3);
-
-    //On shutdown les moteurs
-    shutdown_all();
-
-    //On definie leur position actuelle comme le point 0 de leur position absolue
-    def_positionAbsolue(COBID_CAN1_SDO);
-    def_positionAbsolue(COBID_CAN2_SDO);
-    def_positionAbsolue(COBID_CAN3_SDO);
-
-    //Mettre les positions ici :
-    positionX = 400; // A verifier ?
-    positionY = 600; // A verifier ?
-}
-
-void ControlMoteur::setTorqueWithSpeed(int id){
-    
-    //coupleMoteurAsservissemnt();
-    //double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]
-}
 
 
 //==================ECRITURE/LECTURE FICHIER==================
@@ -1388,20 +1243,182 @@ void ControlMoteur::setViscosite(double viscosite) {
 void ControlMoteur::reset() {
     //Etalonner
     printf("ControlMoteur::Debug : reset\n");
-    //mise_en_position0_effecteur();
+    mise_en_position0_effecteur();
 
-    def_positionAbsolue(COBID_CAN1_SDO);
-    def_positionAbsolue(COBID_CAN2_SDO);
-    def_positionAbsolue(COBID_CAN3_SDO);
+    // def_positionAbsolue(COBID_CAN1_SDO);
+    // def_positionAbsolue(COBID_CAN2_SDO);
+    // def_positionAbsolue(COBID_CAN3_SDO);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-    // set_torque(200, COBID_CAN1_SDO);
-    // set_torque(200, COBID_CAN2_SDO);
-    // set_torque(200, COBID_CAN3_SDO);
+    set_torque(200, COBID_CAN1_SDO);
+    set_torque(200, COBID_CAN2_SDO);
+    set_torque(200, COBID_CAN3_SDO);
 
-    read_position(COBID_CAN1_SDO);
+    //read_position(COBID_CAN1_SDO);
 }
 
+//==================FONCTIONS AVANCEE==================
+
+
+//Main du position Mode
+/**
+ * @brief envoyer la position de l'effecteur a la position voulu
+ * 
+ * @param nb_points (int) : nombre de points voulu entre la position actuelle et l'arrivée
+ */
+void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
+
+    float deplacementIncrX, deplacementIncrY;
+    int nb_points;
+    int val_motor1 = 0; 
+    int val_motor2 = 0;
+    int val_motor3 = 0;
+
+    double read_value = 0;
+    std::cout << "Start Control all position" << std::endl;
+
+    //On recupére la valeur en points de chaque incrémentation en mm
+    int ptsDeplacementX = abs(wantPosX-positionX)*POINTS_PAR_MM;
+    int ptsDeplacementY = abs(wantPosY-positionY)*POINTS_PAR_MM;
+
+    //On trouve quel est le deplacement le plus long selon X ou Y
+    if(ptsDeplacementX>ptsDeplacementY){
+        nb_points = (ptsDeplacementX);
+    }
+    else{
+        nb_points = (ptsDeplacementY);
+    }
+     
+    // printf("MAX POINTS : %d points\n", nb_points);
+    printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
+    
+    //Calcul du deplacement à chaque incrémentation [mm]
+    // deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
+    // deplacementIncrY = ptsDeplacementY*MM_PAR_POINTS/nb_points;
+
+
+    deplacementIncrX = (wantPosX-positionX)/nb_points;
+    deplacementIncrY = (wantPosY-positionY)/nb_points;
+
+    //Valeur de base de la position de l'effecteur
+    wantPosX = positionX;
+    wantPosY = positionY;
+
+    //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
+    printf("En %d points\n", nb_points);
+
+    // pour calcul fps
+    // clock_t start_time= clock();clock_t end_time;
+    // double fps;
+    
+    //On met le moteur 1 en force (10N)
+    //set_torque(300, COBID_CAN1_SDO);
+
+    for(int i=0; i<nb_points; i++){
+        //On incrémente en fonction du nombre de points
+        // if(i<= abs(ptsDeplacementX)){
+            wantPosX += deplacementIncrX;
+        //}
+
+        // if(i<=abs(ptsDeplacementY)){
+            wantPosY +=deplacementIncrY;
+        //}
+        
+        //Calcul des positions voulue avec wantPosX et wantPosY :
+        
+        //===========================================================A FAIRE
+        //std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
+        Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
+        std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
+        //===========================================================FIN
+        //Envoi les données dans les moteurs
+
+        //set_relativePosition(COBID_CAN1_SDO, val_motor1);
+
+        //set_relativePosition(COBID_CAN2_SDO, val_motor2);
+        //set_relativePosition(COBID_CAN3_SDO, val_motor3);
+        
+
+        //set_absolutePosition(COBID_CAN2_SDO, 8000);
+        // set_absolutePosition(COBID_CAN3_SDO, val_motor3);
+
+
+        //================================ 
+        //Attente que tous les moteurs soit arrivé 
+        //checkAllEndTarget();
+        usleep(100);
+
+        //================================ 
+        // read_value = read_position(COBID_CAN2_SDO);
+        // std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
+        
+        //On met à jour la position de l'effecteur
+        positionX = wantPosX;
+        positionY = wantPosY;
+
+        printf("positionX %lf\n",positionX);
+        printf("positionY %lf\n",positionY);
+        printf("\n---------------\n");
+
+        // calcul fps
+        // end_time = clock();
+        // fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+        // fps=1/fps;
+        // start_time = clock();
+        // printf("Les fps sont : deplacements %f par secondes\n", fps);
+        // printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
+        // printf("\n");
+    }
+
+    enDeplacement = false;
+}
+
+void ControlMoteur::mise_en_position0_effecteur(){
+    bool wait = true;
+
+    powerOn = false;
+    shutdown_all();
+
+    init_asservissementForce(COBID_CAN1_SDO);
+    init_asservissementForce(COBID_CAN2_SDO);
+    wait = init_asservissementForce(COBID_CAN3_SDO);
+    while(wait);
+    powerOn = true;
+
+    std::cout << "Checkpoint" << std::endl;
+    
+    //On tire vers le haut les moteurs
+    set_torque(200, COBID_CAN1_SDO);
+    set_torque(200, COBID_CAN2_SDO);
+    set_torque(200, COBID_CAN3_SDO);
+    
+    int test;
+    cin >> test;
+
+    //On shutdown les moteurs
+    shutdown_all();
+    powerOn = false;
+
+    //On definie leur position actuelle comme le point 0 de leur position absolue
+    def_positionAbsolue(COBID_CAN1_SDO);
+    def_positionAbsolue(COBID_CAN2_SDO);
+    def_positionAbsolue(COBID_CAN3_SDO);
+
+    //Mettre les positions ici :
+    positionX = 60; // A verifier ?
+    positionY = 180; // A verifier ?
+}
+
+// Not finished yet 
+void ControlMoteur::findEffectorSpeed(){
+    //En RPM
+    int velocity[3];
+
+    velocity[0] = read_velocity(COBID_CAN1_SDO);
+    velocity[1] = read_velocity(COBID_CAN2_SDO);
+    velocity[2] = read_velocity(COBID_CAN3_SDO);
+
+}
