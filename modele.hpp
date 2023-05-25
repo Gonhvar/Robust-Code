@@ -206,7 +206,7 @@ class Model {
 
         // entree force en N
         // target torque (1000=MotorRatedTorque) 
-        static double force2targetTorque(double force);
+        static int force2targetTorque(double force);
 
 };
 
