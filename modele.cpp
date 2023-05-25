@@ -19,7 +19,7 @@ void Model::_model_position_inverse(double pos_X_effecteur, double pos_Y_effecte
 
 
 double Model::_size_cable_to_increment(double size_cable) {
-    return size_cable*INCREMENTS_PAR_TOUR/(RAPPORT_REDUCTON*2*RAYON_ROUE*PI);
+    return -size_cable*INCREMENTS_PAR_TOUR/(RAPPORT_REDUCTON*2*RAYON_ROUE*PI);
 
 
 }
