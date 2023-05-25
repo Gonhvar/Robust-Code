@@ -120,6 +120,8 @@ class Model {
         // calcul le determinant des vecteurs u et v
         static double det(const double u[2],const  double v[2]);
 
+
+
     public :
 
         // ---CONSTANTES-----------------------------       
@@ -163,6 +165,8 @@ class Model {
 
         static constexpr double TENSION_MINIMUM = 1; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
 
+        static constexpr double NOMINAL_TORQUE = 77.5; // mNm (aussi appelle Motor Rated Torque)
+
 
         // ---FONCTIONS---------------------------
 
@@ -199,6 +203,10 @@ class Model {
 
         //definir longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         static void setOffsetCable(double offsetCable[3]);
+
+        // entree force en N
+        // target torque (1000=MotorRatedTorque) 
+        static double force2targetTorque(double force);
 
 };
 

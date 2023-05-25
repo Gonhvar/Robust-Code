@@ -419,3 +419,10 @@ void Model::setOffsetCable(double offsetCable[3]) {
     OFFSET_CABLE_II = offsetCable[1];
     OFFSET_CABLE_III = offsetCable[2];
 }
+
+
+double Model::force2targetTorque(double force) {
+    double forceMoteur = force*RAPPORT_REDUCTON;
+    double coupleMoteur = forceMoteur*RAYON_ROUE;
+    return coupleMoteur/NOMINAL_TORQUE*1000;
+}
