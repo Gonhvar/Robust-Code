@@ -1090,8 +1090,8 @@ ControlMoteur::ControlMoteur() {
     this->forceX = 15;
     this->forceY = -9.6;
 
-    this->positionX = 420;
-    this->positionY = 150;
+    this->positionX = 400;
+    this->positionY = 160;
 
     //Initialisation du PEAK
     initialise_CAN_USB();
@@ -1187,7 +1187,8 @@ void ControlMoteur::setPowerToOn() {
     switch(asservissement){
         case POSITION :
             //Mode position
-            init_asservissementForce(COBID_CAN1_SDO);
+            //init_asservissementForce(COBID_CAN1_SDO);
+            init_asservissementPosition(COBID_CAN1_SDO);
             init_asservissementPosition(COBID_CAN2_SDO);
             wait = init_asservissementPosition(COBID_CAN3_SDO);
             while(wait);
@@ -1243,11 +1244,11 @@ void ControlMoteur::setViscosite(double viscosite) {
 void ControlMoteur::reset() {
     //Etalonner
     printf("ControlMoteur::Debug : reset\n");
-    mise_en_position0_effecteur();
+    //mise_en_position0_effecteur();
 
-    // def_positionAbsolue(COBID_CAN1_SDO);
-    // def_positionAbsolue(COBID_CAN2_SDO);
-    // def_positionAbsolue(COBID_CAN3_SDO);
+    def_positionAbsolue(COBID_CAN1_SDO);
+    def_positionAbsolue(COBID_CAN2_SDO);
+    def_positionAbsolue(COBID_CAN3_SDO);
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
@@ -1330,7 +1331,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //Calcul des positions voulue avec wantPosX et wantPosY :
         
         //===========================================================A FAIRE
-        //std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
+        std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
         Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
         std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
         //===========================================================FIN
@@ -1341,27 +1342,24 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         //set_relativePosition(COBID_CAN2_SDO, val_motor2);
         //set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
-
-        //set_absolutePosition(COBID_CAN2_SDO, 8000);
-        // set_absolutePosition(COBID_CAN3_SDO, val_motor3);
+        set_absolutePosition(COBID_CAN1_SDO, val_motor1);
+        set_absolutePosition(COBID_CAN2_SDO, val_motor2);
+        set_absolutePosition(COBID_CAN3_SDO, val_motor3);
 
 
         //================================ 
         //Attente que tous les moteurs soit arrivé 
         //checkAllEndTarget();
-        usleep(100);
+        usleep(1000);
 
         //================================ 
-        // read_value = read_position(COBID_CAN2_SDO);
-        // std::cout << "Valeur voulu : " << 8000 << " Valeur atteinte : " << read_value << std::endl;
+        read_value = read_position(COBID_CAN1_SDO);
+        std::cout << "Valeur atteinte : " << read_value << std::endl;
         
         //On met à jour la position de l'effecteur
         positionX = wantPosX;
         positionY = wantPosY;
 
-        printf("positionX %lf\n",positionX);
-        printf("positionY %lf\n",positionY);
-        printf("\n---------------\n");
 
         // calcul fps
         // end_time = clock();
