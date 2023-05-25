@@ -4,14 +4,15 @@
 #include "math.h"
 #include "stdio.h"
 
-
+// point avec des int
 typedef struct _Point
 {
     int x; //en mm
     int y; //en mm
 } Point;
 
-typedef struct _PointD
+// point avec des double
+typedef struct _PointD 
 {
     double x; //en mm
     double y; //en mm
@@ -53,7 +54,19 @@ class Model {
         //converti la longueur d'un cable [mm] en le nombre correspondant d'increments
         //on prend en compte le rapport de reduction
         //on ne prend pas en compte l'offset
+        //  retirer a size_cable OFFSET_CABLE en argument si vrai valeur est voulue 
         static double _size_cable_to_increment(double size_cable);
+
+                
+
+
+        //converti le nombre d'increments d'un moteur en la longueur correspondante d'un cable [mm] 
+        //on prend en compte le rapport de reduction
+        //on ne prend pas en compte l'offset
+        //  ajouter OFFSET_CABLE au resultat si vrai valeur voulue 
+        static double _increment_to_size_cable(int incrementMoteur);
+
+    
 
 
         
@@ -127,7 +140,20 @@ class Model {
 
         // calcul le determinant des vecteurs u et v
         static double det(const double u[2],const  double v[2]);
+        // calcul le couple a mettre dans les moteurs (couple_moteur) en fonction de la vitesse et de la raideur
+        // entrees : 
+        // position_effecteur : en mm depuis l'origine
+        // vitessse_effecteur : en mm/s 
+        // raideur : en N/mm
+        // viscosite : en kg/s
+        // sortie :
+        // couple_moteur : en N.mm  => /!\ nullptr si pas dans triangle 
+        // temps d'execution sur un processeur donnee : 0.4ms (2,5kHz)
+        static void PrecoupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]);
 
+        // entre  : tourParMinute d'un moteur donnee
+        // sortie : vitesse du cable de ce moteur en mm/s
+        static double tourParMinute2VitesseCable(double tourParMinuete);
 
 
     public :
@@ -175,6 +201,9 @@ class Model {
 
         static constexpr double NOMINAL_TORQUE = 77.5; // mNm (aussi appelle Motor Rated Torque)
 
+        // centre de la raideur pour le modele haptique
+        static constexpr double CENTRE_MILIEU_ELASTIQUE_X = 400;
+        static constexpr double CENTRE_MILIEU_ELASTIQUE_Y = 300;
 
         // ---FONCTIONS---------------------------
 
@@ -189,16 +218,7 @@ class Model {
         // temps d'execution sur un processeur donnee : 0.4ms (2,5kHz)
         static void couple_moteur_for_force(double const force_operationnelle[2], double const position_effecteur[2] ,double couple_moteur[3]);
 
-        // calcul le couple a mettre dans les moteurs (couple_moteur) en fonction de la vitesse et de la raideur
-        // entrees : 
-        // position_effecteur : en mm depuis l'origine
-        // vitessse_effecteur : en mm/s 
-        // raideur : en N/mm
-        // viscosite : en kg/s
-        // sortie :
-        // couple_moteur : en N.mm  => /!\ nullptr si pas dans triangle 
-        // temps d'execution sur un processeur donnee : 0.4ms (2,5kHz)
-        static void coupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]);
+
 
 
         // renvoie si l'effecteur est dans le triangle forme par les positions des sorties des fils des moteurs
@@ -223,7 +243,29 @@ class Model {
         // sortie : vitesseEffecteur [vitesseX,vitesseY] en mm/s
         static void vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]);
 
+        
 
+        // calcul la longueur de cable pour chaque moteur
+        // trouve les trois intersections présentent dans le traingle des cables 
+        // fait une moyenne
+        // on obtiens ainsi une approximation de la position de l'effeecteur
+        // entree :
+        // incrementMoteurI / II / III : increment de chaque moteur
+        // sortie :
+        // positionEffecteurX /Y :
+        static void incrementToPostion(int incrementMoteurI, int incrementMoteurII, int incrementMoteurIII,  double &positionEffecteurX , double &positionEffecteurY);
+
+        // calcul le couple a mettre dans les moteurs (couple_moteur) en fonction de la viscoisite, de la raideur ...
+        // ... de la vitesse, de la position de l'effecteur et du centre du milieu elastique
+        // entrees : 
+        // incrementMoteurs : increment moteurs I, II, III
+        // vitesse_moteur : en [tour/s] , moteurs I, II, III
+        // raideur : en N/mm
+        // viscosite : en kg/s
+        // sortie :
+        // couple_moteur : en N.mm  => /!\ nullptr si pas dans triangle 
+        // temps d'execution sur un processeur donnee : ??? (???kHz)
+        static void coupleMoteurAsservissemnt(int const incrementMoteurs[3] ,double const vitesse_moteur[3], double raideur, double viscosite ,double couple_moteur[3]);
 
 };
 
