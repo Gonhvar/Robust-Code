@@ -74,10 +74,18 @@ class Model {
         // convention : [ a b     ->  [a b c d]
         //                c d ]
 
+
+        // position_effecteur : en mm depuis l'origine
+        // on suppose que effecteur est ponctuel
+        // jacobienne = [premier ligne [3 colonnes] , seconde ligne [3 colonnes]]
+        static void _init_jacobienne(double const position_effecteur[2], double jacobienne[6]);
+
+
         // origine_cable = [ x_I , y_I , x_II , y_II  , x_III , y_III]
         // position_accroche_effecteur = [ x_I , y_I , x_II , y_II  , x_III , y_III], tous x identiques et tous y identiques si effecteur ponctuel
         // jacobienne = [premier ligne [3 colonnes] , seconde ligne [3 colonnes]]
         static void _init_jacobienne(const double origine_cable[6],const double position_accroche_effecteur[6], double jacobienne[6]);
+
 
         // renvoie une matrice 2x2
         static void _multiplication_2x3_par_3x2(const double A[6],const double B[6], double C[4]) ;
@@ -207,6 +215,16 @@ class Model {
         // entree force en N
         // target torque (1000=MotorRatedTorque) 
         static double force2targetTorque(double force);
+
+        // [!] MARCHE PAS
+        // donne la vitesse de l'effecteur en fonction de la vitesse des moteur
+        // entree :     
+        //              vitesseMoteur [moteurI, moteurII , moteurIII] en mm/s
+        //              position_effecteur [ positionX, positionY ] : en mm depuis l'origine        
+        // sortie : vitesseEffecteur [vitesseX,vitesseY] en mm/s
+        static void vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]);
+
+
 
 };
 

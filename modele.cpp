@@ -426,3 +426,32 @@ double Model::force2targetTorque(double force) {
     double coupleMoteur = forceMoteur*RAYON_ROUE;
     return coupleMoteur/NOMINAL_TORQUE*1000;
 }
+
+void Model::vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]) {
+    double jacobienne[6]; // matrice 2x3
+    Model::_init_jacobienne(position_effecteur, jacobienne);
+    // vitesseEffecteur = vitesseMoteur x jacobienne :
+    vitesseEffecteur[0] = jacobienne[0]*vitesseMoteur[0]+jacobienne[1]*vitesseMoteur[1]+jacobienne[2]*vitesseMoteur[2];
+    vitesseEffecteur[1] = jacobienne[4]*vitesseMoteur[0]+jacobienne[5]*vitesseMoteur[1]+jacobienne[6]*vitesseMoteur[2];
+}
+
+void Model::_init_jacobienne(double const position_effecteur[2], double jacobienne[6]) {
+    double origine_cable[6];
+    origine_cable[0] = MOTEUR_I_POSITION_X;
+    origine_cable[1] = MOTEUR_I_POSITION_Y;
+    origine_cable[2] = MOTEUR_II_POSITION_X;
+    origine_cable[3] = MOTEUR_II_POSITION_Y;
+    origine_cable[4] = MOTEUR_III_POSITION_X;
+    origine_cable[5] = MOTEUR_III_POSITION_Y;
+
+    // on fait l'hypothese que l'effecteur est ponctuel
+    double position_accroche_effecteur[6];
+    position_accroche_effecteur[0]=position_effecteur[0];
+    position_accroche_effecteur[1]=position_effecteur[1];
+    position_accroche_effecteur[2]=position_effecteur[0];
+    position_accroche_effecteur[3]=position_effecteur[1];
+    position_accroche_effecteur[4]=position_effecteur[0];
+    position_accroche_effecteur[5]=position_effecteur[1];
+
+    Model::_init_jacobienne(origine_cable, position_accroche_effecteur, jacobienne);
+}
