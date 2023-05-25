@@ -113,9 +113,11 @@ int Model::intersection_cercles(PointD centre1, double rayon1, PointD centre2, d
 
 void Model::_init_jacobienne(const double origine_cable[6], const double position_accroche_effecteur[6], double jacobienne[6]) {
     double d1 = sqrt(pow(origine_cable[0]-position_accroche_effecteur[0],2)+pow(origine_cable[1]-position_accroche_effecteur[1],2));
+
     double u1[2]; u1[0]=origine_cable[0]-position_accroche_effecteur[0]; u1[1]=origine_cable[1]-position_accroche_effecteur[1];
 
     double d2 = sqrt(pow(origine_cable[2]-position_accroche_effecteur[2],2)+pow(origine_cable[3]-position_accroche_effecteur[3],2));
+
     double u2[2]; u2[0]=origine_cable[2]-position_accroche_effecteur[2]; u2[1]=origine_cable[3]-position_accroche_effecteur[3];
 
     double d3 = sqrt(pow(origine_cable[4]-position_accroche_effecteur[4],2)+pow(origine_cable[5]-position_accroche_effecteur[5],2));
@@ -430,9 +432,12 @@ double Model::force2targetTorque(double force) {
 void Model::vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]) {
     double jacobienne[6]; // matrice 2x3
     Model::_init_jacobienne(position_effecteur, jacobienne);
+
+
+
     // vitesseEffecteur = vitesseMoteur x jacobienne :
     vitesseEffecteur[0] = jacobienne[0]*vitesseMoteur[0]+jacobienne[1]*vitesseMoteur[1]+jacobienne[2]*vitesseMoteur[2];
-    vitesseEffecteur[1] = jacobienne[4]*vitesseMoteur[0]+jacobienne[5]*vitesseMoteur[1]+jacobienne[6]*vitesseMoteur[2];
+    vitesseEffecteur[1] = jacobienne[3]*vitesseMoteur[0]+jacobienne[4]*vitesseMoteur[1]+jacobienne[5]*vitesseMoteur[2];
 }
 
 void Model::_init_jacobienne(double const position_effecteur[2], double jacobienne[6]) {

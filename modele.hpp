@@ -74,13 +74,13 @@ class Model {
         // convention : [ a b     ->  [a b c d]
         //                c d ]
 
-
+        // jacobienne avec les vecteurs sur les câbles excentriques
         // position_effecteur : en mm depuis l'origine
         // on suppose que effecteur est ponctuel
         // jacobienne = [premier ligne [3 colonnes] , seconde ligne [3 colonnes]]
         static void _init_jacobienne(double const position_effecteur[2], double jacobienne[6]);
 
-
+        // jacobienne avec les vecteurs sur les câbles excentriques
         // origine_cable = [ x_I , y_I , x_II , y_II  , x_III , y_III]
         // position_accroche_effecteur = [ x_I , y_I , x_II , y_II  , x_III , y_III], tous x identiques et tous y identiques si effecteur ponctuel
         // jacobienne = [premier ligne [3 colonnes] , seconde ligne [3 colonnes]]
@@ -216,7 +216,6 @@ class Model {
         // target torque (1000=MotorRatedTorque) 
         static double force2targetTorque(double force);
 
-        // [!] MARCHE PAS
         // donne la vitesse de l'effecteur en fonction de la vitesse des moteur
         // entree :     
         //              vitesseMoteur [moteurI, moteurII , moteurIII] en mm/s
