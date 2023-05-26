@@ -410,7 +410,7 @@ void InterfaceGraphique::disco1() {
 }
 
 void InterfaceGraphique::disco2() {
-    controlMoteur->disco();
+    controlMoteur->techno();
 }
 
 

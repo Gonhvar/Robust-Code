@@ -47,7 +47,7 @@ class InterfaceGraphique {
         std::thread *gtkThread;
         guint timeout_id; // permet de nettoyer le rafraichissement
         static int nombreInstance; //garantie qu'on instancie qu'une fois on utilise pas singleton patern car thread
-
+        
         Rasberry *rasberry;
         ControlMoteur *controlMoteur;
 

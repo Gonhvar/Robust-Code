@@ -49,6 +49,8 @@ using namespace std;
 #define ACTUALVELOCITY 0x30D3
 #define ACTUALTORQUE 0x6077
 
+#define DEFAULTPOSITIONX 400
+#define DEFAULTPOSITIONY 347
 
 // CONSTANTES MOTEUR
 #define MOTOR_RATED_TORQUE 75.7
@@ -67,7 +69,7 @@ typedef struct tagmsgRecu{
 // /!\ A instancier une seule fois
 class ControlMoteur {
     private :
-        enum Asservissement {POSITION, HAPTIC};
+        enum Asservissement {POSITION, HAPTIC, ETALONNAGE};
         bool powerOn;
         Asservissement asservissement;
         std::thread *controlMoteurThread;
@@ -87,6 +89,18 @@ class ControlMoteur {
 
         double raideur;
         double viscosite;
+
+        double vitesseEffecteur[2];
+        double forceCable[3];
+
+        //En points
+        int increment[3];
+        //En RPM
+        double velocity[3];
+        //N.mm
+        double torque[3];
+
+
 
         //================INITIALISATION_PEAK================
         TPCANHandle find_channel();
@@ -111,6 +125,7 @@ class ControlMoteur {
         void set_absolutePosition(int id, int uInput);
         void checkEndTarget(uint8_t* status, int motId);
         void checkAllEndTarget();
+        void check23EndTarget();
         void get_manualWantedPos(double *wantPosX , double *wantPosY);
         void set_manualUserPosition(int id);
         
@@ -149,7 +164,9 @@ class ControlMoteur {
         void control_allPosition(double wantPosX, double wantPosY);
         void miseDeplacementManuelForce();
         void mise_en_position0_effecteur();
-        void findEffectorSpeed();
+        void control_haptique();
+        void findEffectorSpeed(double couple_moteur[3]);
+        void updateValeurs();
 
     public:
 
@@ -199,6 +216,8 @@ class ControlMoteur {
         
         // [!] A IMPLEMENTER PAR OLIVIER
         void disco();
+
+        void techno();
 
         // fonction blocante qui attend que le thread se finisse
         // /!\ appeler qu'une fois

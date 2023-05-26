@@ -427,11 +427,37 @@ void Model::setOffsetCable(double offsetCable[3]) {
     OFFSET_CABLE_III = offsetCable[2];
 }
 
+void Model::torqueMoteur2ForceXY(const double torqueMoteur[3], double const position_effecteur[2] ,double forceXY[2]) {
+    double forceMoteur[3];
+    torqueMoteur2ForceMoteur(torqueMoteur, forceMoteur);
+
+    double jacobienne[6]; // matrice 2x3
+    Model::_init_jacobienne(position_effecteur, jacobienne);
+
+    // forceXY = forceMoteur x jacobienne :
+    forceXY[0] = jacobienne[0]*forceMoteur[0]+jacobienne[1]*forceMoteur[1]+jacobienne[2]*forceMoteur[2];
+    forceXY[1] = jacobienne[3]*forceMoteur[0]+jacobienne[4]*forceMoteur[1]+jacobienne[5]*forceMoteur[2];
+
+}
+
+void Model::torqueMoteur2ForceMoteur(const double torqueMoteur[3], double forceMoteur[3]) {
+    for (size_t i = 0; i < 3; i++)
+    {
+        forceMoteur[i] = torqueMoteur[i]*RAYON_ROUE/RAPPORT_REDUCTON;
+    }
+    
+}
+
+
 
 double Model::force2targetTorque(double force) {
     double forceMoteur = force*RAPPORT_REDUCTON;
     double coupleMoteur = forceMoteur*RAYON_ROUE;
     return coupleMoteur/NOMINAL_TORQUE*1000;
+}
+
+double Model::torque2TargetTorque(double torque) {
+    return torque/NOMINAL_TORQUE*1000;
 }
 
 void Model::vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]) {
