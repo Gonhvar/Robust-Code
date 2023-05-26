@@ -1139,8 +1139,6 @@ bool ControlMoteur::init_homingMode(int id){
     init_msg_SDO(&msg, id, W_1B, HOMING_METHOD, 0x00, msg_data);
     write_message(msg);
 
-    usleep(200000);
-
 
     //Controlword (Shutdown)
     msg_data[0] = 0x00;
@@ -1153,6 +1151,14 @@ bool ControlMoteur::init_homingMode(int id){
     //Controlword (Switch On & Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    usleep(1000);
+
+    //ControlWord (Start Homing)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x1F;
     init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
