@@ -1603,9 +1603,9 @@ void ControlMoteur::updateValeurs(){
 
 
     //Mise a jour de la couple des moteurs
-    torque[0] = ((double)read_torque(COBID_CAN1_SDO))/1000*Model::NOMINAL_TORQUE;
-    torque[1] = ((double)read_torque(COBID_CAN2_SDO))/1000*Model::NOMINAL_TORQUE;
-    torque[2] = ((double)read_torque(COBID_CAN3_SDO))/1000*Model::NOMINAL_TORQUE;
+    torque[0] = ((double)Int16ToSingnedInt(read_torque(COBID_CAN1_SDO)))/1000*Model::NOMINAL_TORQUE;
+    torque[1] = ((double)Int16ToSingnedInt(read_torque(COBID_CAN2_SDO)))/1000*Model::NOMINAL_TORQUE;
+    torque[2] = ((double)Int16ToSingnedInt(read_torque(COBID_CAN3_SDO)))/1000*Model::NOMINAL_TORQUE;
     
 
     //Mise a jour de la vitesse de l'effecteur 
@@ -1622,3 +1622,13 @@ void ControlMoteur::updateValeurs(){
     forceX = forceXY[0];
     forceY = forceXY[1];
 }
+
+
+int ControlMoteur::Int16ToSingnedInt(uint16_t value) {
+    // sortie [−32768, 32767]
+    if (value>32767) {
+        value-=65536;
+    }
+    return value;
+}
+
