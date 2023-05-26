@@ -1024,7 +1024,7 @@ int ControlMoteur::read_torque(int id) {
                 default : 
                     printf("Erreur taille du message\n");
             }
-            printf("\n---------------\n");
+            //printf("\n---------------\n");
         }
     }
 
@@ -1055,7 +1055,7 @@ int ControlMoteur::read_velocity(int id) {
                 default : 
                     printf("Erreur taille du message\n");
             }
-            printf("\n---------------\n");
+            //printf("\n---------------\n");
         }
     }
 
@@ -1081,14 +1081,14 @@ int ControlMoteur::read_position(int id) {
             switch(g.taille){
                 case R_4B :
                     //4 octets
-                    std::cout << "Lecture de la position : " << g.valData << std::endl;
+                    //std::cout << "Lecture de la position : " << g.valData << std::endl;
                     increment=g.valData;
                     break;
                     
                 default : 
                     printf("Erreur taille du message\n");
             }
-            printf("\n---------------\n");
+            //printf("\n---------------\n");
         }
     }
     
@@ -1201,10 +1201,7 @@ void ControlMoteur::changeAsservissement(){
     } else {
         asservissement=POSITION;
     }
-
-    if(precPower){
-        setPowerToOn();
-    }
+    setPowerToOn();
 }
 
 void ControlMoteur::getPosition(double &positionX, double &positionY) {
@@ -1547,7 +1544,15 @@ void ControlMoteur::control_haptique(){
 
 void ControlMoteur::findEffectorSpeed(double couple_moteur[3]){
     double position[2] = {positionX, positionY}; 
-    
+
+    //Mise a jour des incréments des moteurs
+    increment[0] = read_position(COBID_CAN1_SDO);
+    increment[1] = read_position(COBID_CAN2_SDO);
+    increment[2] = read_position(COBID_CAN3_SDO);
+
+    //Mise a jour de la position de l'effecteur
+    Model::incrementToPostion(increment[0], increment[1], increment[2], positionX, positionY);
+
     // u_int8_t x4
     printf("increments : %d %d %d",increment[0],increment[1],increment[2]);
 
@@ -1561,12 +1566,7 @@ void ControlMoteur::findEffectorSpeed(double couple_moteur[3]){
 
 void ControlMoteur::updateValeurs(){
     double position[2] = {positionX, positionY}; 
-
-    //Mise a jour des incréments des moteurs
-    increment[0] = read_position(COBID_CAN1_SDO);
-    increment[1] = read_position(COBID_CAN2_SDO);
-    increment[2] = read_position(COBID_CAN3_SDO);
-
+    
     //Mise a jour de la vitesse des moteurs
     velocity[0] = read_velocity(COBID_CAN1_SDO)*0;
     velocity[1] = read_velocity(COBID_CAN2_SDO)*0;
@@ -1577,8 +1577,6 @@ void ControlMoteur::updateValeurs(){
     torque[1] = read_torque(COBID_CAN2_SDO);
     torque[2] = read_torque(COBID_CAN3_SDO);
     
-    //Mise a jour de la position de l'effecteur
-    Model::incrementToPostion(increment[0], increment[1], increment[2], positionX, positionY);
 
     //Mise a jour de la vitesse de l'effecteur 
     Model::vitesseMoteur2effecteur(velocity, position, vitesseEffecteur);
