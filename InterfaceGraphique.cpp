@@ -215,7 +215,17 @@ void InterfaceGraphique::initWigets() {
     // --- BOTTOM ---
 
     // resetButton
-    resetButton = gtk_button_new_with_label("Etalloner");
+    resetButton = gtk_button_new_with_label("Etalonner");
+
+    // GtkTooltip * _tooltip= gtk_tooltip_new(); 
+    // gtk_tooltips_set_tip(_tooltip, label, "text", NULL);
+    
+    // // Create a tooltip
+    // Gtk::Tooltip tooltip;
+    // tooltip.set_text("This is a tooltip message");
+
+    // // Set the tooltip to the button
+    // resetButton.set_tooltip(tooltip);
     gtk_box_pack_start(GTK_BOX(bottom), resetButton, FALSE, FALSE, 0);
     g_signal_connect(resetButton, "clicked", G_CALLBACK(callBack_Reset), this);
 
