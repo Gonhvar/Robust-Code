@@ -229,6 +229,7 @@ void InterfaceGraphique::initWigets() {
 
 
     setWigetForSpecificMode();
+    desactiveForPowerOff();
     gtk_widget_show_all(window);
 
 
@@ -659,6 +660,7 @@ void InterfaceGraphique::setPowerOn() {
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
     addGreenBorder(changePowerButton);
     printf("InterfaceGraphique::Debug : power ON\n");
+    activeForPowerOn();
 }
 
 void InterfaceGraphique::setPowerOff() {
@@ -666,14 +668,41 @@ void InterfaceGraphique::setPowerOff() {
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
     addRedBorder(changePowerButton);
     printf("InterfaceGraphique::Debug : power OFF\n");
+    desactiveForPowerOff();
 }
 
 void InterfaceGraphique::updateDisplayPower() {
     if (powerOn != controlMoteur->getPowerOn()) {
-        if (powerOn) {
+        if (controlMoteur->getPowerOn()) {
             setPowerOn();
         } else {
             setPowerOff();
         }
     }
+}
+
+void InterfaceGraphique::desactiveForPowerOff() {
+    gtk_widget_set_sensitive(changeModeButton, FALSE);
+
+    gtk_widget_set_sensitive(setVitesseButton, FALSE);
+    gtk_widget_set_sensitive(goToButton, FALSE);
+
+    gtk_widget_set_sensitive(setViscositeButton, FALSE);
+    gtk_widget_set_sensitive(setRaideurButton, FALSE);
+
+}
+
+
+// active et fait apparaitre les widgets pour powerON = true
+void InterfaceGraphique::activeForPowerOn() {
+    gtk_widget_set_sensitive(changeModeButton, TRUE);
+
+    gtk_widget_set_sensitive(setVitesseButton, TRUE);
+    gtk_widget_set_sensitive(goToButton, TRUE);
+
+    gtk_widget_set_sensitive(setViscositeButton, TRUE);
+    gtk_widget_set_sensitive(setRaideurButton, TRUE);
+
+
+
 }
