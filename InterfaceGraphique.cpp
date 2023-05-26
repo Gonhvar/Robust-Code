@@ -190,7 +190,7 @@ void InterfaceGraphique::initWigets() {
 
 
 
-
+    setViscositeButton=nullptr;
 
 
 
@@ -214,28 +214,32 @@ void InterfaceGraphique::initWigets() {
 
     // --- BOTTOM ---
 
+    // resetBox
+
+    resetBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    gtk_box_pack_start(GTK_BOX(bottom), resetBox, FALSE, FALSE, 0);
+
+    // infoResetLabel
+    infoResetLabel = gtk_label_new("Attention :\nL'effecteur doit être libre\navant l'etalonnage");
+    gtk_box_pack_start(GTK_BOX(resetBox), infoResetLabel, FALSE, FALSE, 0);
+
+
     // resetButton
     resetButton = gtk_button_new_with_label("Etalonner");
-
-    // GtkTooltip * _tooltip= gtk_tooltip_new(); 
-    // gtk_tooltips_set_tip(_tooltip, label, "text", NULL);
-    
-    // // Create a tooltip
-    // Gtk::Tooltip tooltip;
-    // tooltip.set_text("This is a tooltip message");
-
-    // // Set the tooltip to the button
-    // resetButton.set_tooltip(tooltip);
-    gtk_box_pack_start(GTK_BOX(bottom), resetButton, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(resetBox), resetButton, FALSE, FALSE, 0);
     g_signal_connect(resetButton, "clicked", G_CALLBACK(callBack_Reset), this);
 
-    // discoButton
-    discoButton = gtk_button_new_with_label("Disco");
-    gtk_box_pack_start(GTK_BOX(bottom), discoButton, FALSE, FALSE, 0);
-    addMagentaBorder(discoButton);
-    g_signal_connect(discoButton, "clicked", G_CALLBACK(callBack_Disco), this);
+    // discoButton1
+    discoButton1 = gtk_button_new_with_label("Disco");
+    gtk_box_pack_start(GTK_BOX(bottom), discoButton1, TRUE, TRUE, 0);
+    addMagentaBorder(discoButton1);
+    g_signal_connect(discoButton1, "clicked", G_CALLBACK(callBack_Disco1), this);
     
-
+    // discoButton2
+    discoButton2 = gtk_button_new_with_label("Techno");
+    gtk_box_pack_start(GTK_BOX(bottom), discoButton2, TRUE, TRUE, 0);
+    addOrangeBorder(discoButton2);
+    g_signal_connect(discoButton2, "clicked", G_CALLBACK(callBack_Disco2), this);
 
 
     setWigetForSpecificMode();
@@ -280,6 +284,16 @@ void InterfaceGraphique::addMagentaBorder(GtkWidget* widget) {
     g_object_unref(provider);
 }
 
+void InterfaceGraphique::addOrangeBorder(GtkWidget* widget) {
+    // Définit le style CSS pour la bordure
+    const gchar *css = "button { border: 4px solid orange; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
+
 
 void InterfaceGraphique::changeColorRed(GtkWidget* widget) {
     // Définit le style CSS pour la couleur d'arrière-plan
@@ -300,6 +314,7 @@ void InterfaceGraphique::changeColorGreen(GtkWidget* widget) {
     gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
     g_object_unref(provider);    
 }
+
 
 InterfaceGraphique::~InterfaceGraphique() {
     g_source_remove(timeout_id); 
@@ -377,7 +392,11 @@ void InterfaceGraphique::reset() {
     controlMoteur->reset();
 }
 
-void InterfaceGraphique::disco() {
+void InterfaceGraphique::disco1() {
+    controlMoteur->disco();
+}
+
+void InterfaceGraphique::disco2() {
     controlMoteur->disco();
 }
 
@@ -622,10 +641,17 @@ void InterfaceGraphique::callBack_Reset(GtkWidget* button, gpointer data) {
      interfaceGraphique->reset();
 }
 
-void InterfaceGraphique::callBack_Disco(GtkWidget* button, gpointer data) {
+void InterfaceGraphique::callBack_Disco1(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
 
-    interfaceGraphique->disco();   
+    interfaceGraphique->disco1();   
+}
+
+// mettre this en data
+void InterfaceGraphique::callBack_Disco2(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+    interfaceGraphique->disco2();   
 }
 
 void InterfaceGraphique::detruirePositonBox() {
@@ -643,6 +669,8 @@ void InterfaceGraphique::detruirePositonBox() {
     gtk_widget_destroy(goToBox);
 
     goToBox = nullptr;
+
+    setViscositeButton =nullptr;
 
 }
 
@@ -692,13 +720,18 @@ void InterfaceGraphique::updateDisplayPower() {
 }
 
 void InterfaceGraphique::desactiveForPowerOff() {
-    gtk_widget_set_sensitive(changeModeButton, FALSE);
+        gtk_widget_set_sensitive(changeModeButton, FALSE);
 
-    gtk_widget_set_sensitive(setVitesseButton, FALSE);
-    gtk_widget_set_sensitive(goToButton, FALSE);
+    if (setVitesseButton) {
+        gtk_widget_set_sensitive(setVitesseButton, FALSE);
+        gtk_widget_set_sensitive(goToButton, FALSE);
+    }
 
-    gtk_widget_set_sensitive(setViscositeButton, FALSE);
-    gtk_widget_set_sensitive(setRaideurButton, FALSE);
+    if (setViscositeButton) {
+        gtk_widget_set_sensitive(setViscositeButton, FALSE);
+        gtk_widget_set_sensitive(setRaideurButton, FALSE);
+    }
+
 
 }
 
@@ -707,11 +740,16 @@ void InterfaceGraphique::desactiveForPowerOff() {
 void InterfaceGraphique::activeForPowerOn() {
     gtk_widget_set_sensitive(changeModeButton, TRUE);
 
-    gtk_widget_set_sensitive(setVitesseButton, TRUE);
-    gtk_widget_set_sensitive(goToButton, TRUE);
+    if (setVitesseButton) {
+        gtk_widget_set_sensitive(setVitesseButton, TRUE);
+        gtk_widget_set_sensitive(goToButton, TRUE);
+    }
 
-    gtk_widget_set_sensitive(setViscositeButton, TRUE);
-    gtk_widget_set_sensitive(setRaideurButton, TRUE);
+    if (setViscositeButton) {
+        gtk_widget_set_sensitive(setViscositeButton, TRUE);
+        gtk_widget_set_sensitive(setRaideurButton, TRUE);
+    }
+
 
 
 

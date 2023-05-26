@@ -120,9 +120,11 @@ class InterfaceGraphique {
 
         // --- HEAD DE LA PAGE ---:
 
+        GtkWidget* resetBox;
+        GtkWidget* infoResetLabel;
         GtkWidget* resetButton;
-        GtkWidget* discoButton;
-
+        GtkWidget* discoButton1;
+        GtkWidget* discoButton2;
 
 
 
@@ -157,6 +159,8 @@ class InterfaceGraphique {
 
         static void addMagentaBorder(GtkWidget* widget);
 
+        static void addOrangeBorder(GtkWidget* widget);
+
         static void changeColorRed(GtkWidget* widget);
 
         static void changeColorGreen(GtkWidget* widget);
@@ -188,7 +192,9 @@ class InterfaceGraphique {
 
         void reset();
 
-        void disco();
+        void disco1();
+
+        void disco2();
 
         void detruirePositonBox();
 
@@ -259,7 +265,10 @@ class InterfaceGraphique {
         static void callBack_Reset(GtkWidget* button, gpointer data);
 
         // mettre this en data
-        static void callBack_Disco(GtkWidget* button, gpointer data);
+        static void callBack_Disco1(GtkWidget* button, gpointer data);
+
+        // mettre this en data
+        static void callBack_Disco2(GtkWidget* button, gpointer data);
 
 
 
