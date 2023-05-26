@@ -147,6 +147,7 @@ class ControlMoteur {
         //==================AVEC MODELES==================
 
         void control_allPosition(double wantPosX, double wantPosY);
+        void miseDeplacementManuelForce();
         void mise_en_position0_effecteur();
         void findEffectorSpeed();
 

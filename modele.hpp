@@ -184,9 +184,9 @@ class Model {
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //defini la valeur a l'originie de OffsetCableI
-        static const int OFFSET_CABLE_I_ORIGINE = 469; 
-        static const int OFFSET_CABLE_II_ORIGINE  = 390; 
-        static const int OFFSET_CABLE_III_ORIGINE = 390; 
+        static const int OFFSET_CABLE_I_ORIGINE = 100; 
+        static const int OFFSET_CABLE_II_ORIGINE  = 570; 
+        static const int OFFSET_CABLE_III_ORIGINE = 565; 
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //A regler grace a setOffsetCable()
