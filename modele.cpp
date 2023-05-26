@@ -538,6 +538,8 @@ void Model::coupleMoteurAsservissemnt(int const incrementMoteurs[3] ,double cons
     double positionEffecteur[2];
     incrementToPostion(incrementMoteurs[0],incrementMoteurs[1],incrementMoteurs[2],positionEffecteur[0],positionEffecteur[1]);
 
+    
+
     double vitesseEffecteur[2];
     vitesseMoteur2effecteur(vitesse_moteur,positionEffecteur,vitesseEffecteur);
 
