@@ -591,7 +591,7 @@ void ControlMoteur::set_absolutePosition(int id, int uInput){
     msg_data[2] = (uInput>>8)%256;
     msg_data[3] = uInput;
 
-    printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
+    //printf("uInput : %hhx | %hhx\n", msg_data[2], msg_data[3]);
     //ATTENTION : W_4B EST ESSENTIEL
     init_msg_SDO(&msg, id, W_4B, TARGET_POSITION, 0x00, msg_data);
     write_message(msg);
@@ -710,7 +710,55 @@ void ControlMoteur::checkAllEndTarget(){
     }
 }
 
+void ControlMoteur::check23EndTarget(){
 
+    uint8_t status = 0;
+    //Check si toutes les cartes sont arrivé à destination sinon recheck
+    while(status != 0b111){
+
+        // std::cout << "Status : "<< status << std::endl;
+        switch(status){
+            case 0b000 :
+                //Demander à chaques cartes
+                // checkEndTarget(&status, COBID_CAN1_SDO);
+                // std::cout << "One" << std::endl;
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                checkEndTarget(&status, COBID_CAN3_SDO);
+                status = status | 0b001;
+                break;
+
+            case 0b001 :
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                checkEndTarget(&status, COBID_CAN3_SDO);
+                break;
+
+            case 0b010 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                checkEndTarget(&status, COBID_CAN3_SDO);
+                break;
+
+            case 0b100 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                break;
+
+            case 0b011 :
+                checkEndTarget(&status, COBID_CAN3_SDO);
+                break;
+
+            case 0b101 :
+                checkEndTarget(&status, COBID_CAN2_SDO);
+                break;
+
+            case 0b110 :
+                checkEndTarget(&status, COBID_CAN1_SDO);
+                break;
+
+            default :
+                std::cout << "Erreur dans le recheck des valeurs de STATUSWORD\n";
+        }
+    }
+}
 
 //--------------MANUEL---------------
 /**
@@ -969,7 +1017,7 @@ int ControlMoteur::read_torque(int id) {
             switch(g.taille){
                 case R_2B :
                     //2 octets
-                    std::cout << "Lecture du torque : " << g.valData << std::endl;
+                    //std::cout << "Lecture du torque : " << g.valData << std::endl;
                     increment=g.valData;
                     break;
                     
@@ -1089,8 +1137,11 @@ ControlMoteur::ControlMoteur() {
     this->forceX = 15;
     this->forceY = -9.6;
 
-    this->positionX = 400;
-    this->positionY = 160;
+    this->positionX = 0;
+    this->positionY = 0;
+
+    this->raideur = 0.2;
+    this->viscosite = 1;
 
     //Initialisation du PEAK
     initialise_CAN_USB();
@@ -1106,14 +1157,9 @@ void ControlMoteur::runControlMoteur() {
     // actualiser dans l'asservissement forceX, forceY, positionX, positionY
     while (true)
     {
-        //= positionX
-        //= positionY
-
+        updateValeurs();
         switch(asservissement){
             case POSITION :
-                //positionX = read_position(COBID_CAN2_SDO);
-                //positionY = read_position(COBID_CAN3_SDO);
-
                 if(enDeplacement){
                     std::cout << "Debug: runControlMoteur" << std::endl;
                     control_allPosition(wantedPositionX, wantedPositionY);
@@ -1121,7 +1167,11 @@ void ControlMoteur::runControlMoteur() {
                 break;
             
             case HAPTIC :
-                //faire truc ici 
+                control_haptique();
+                break;
+            case ETALONNAGE : 
+                std::cout << "Debug: Etalonnage" << std::endl;
+                mise_en_position0_effecteur();
                 break;
 
             default : 
@@ -1143,6 +1193,7 @@ void ControlMoteur::getForce(double &forceX, double &forceY) {
 
 void ControlMoteur::changeAsservissement(){
     bool precPower = powerOn;
+
     setPowerToOff();
     //On change le mode
     if (asservissement==POSITION) {
@@ -1175,6 +1226,9 @@ void ControlMoteur::changePower() {
 
 void ControlMoteur::setPowerToOff() {
     powerOn=false;
+    wantedPositionX = positionX;
+    wantedPositionY = positionY;
+
     shutdown_all();
     printf("ControlMoteur : moteur eteint\n");
 }
@@ -1199,6 +1253,7 @@ void ControlMoteur::setPowerToOn() {
             init_asservissementForce(COBID_CAN2_SDO);
             wait = init_asservissementForce(COBID_CAN3_SDO);
             while(wait);
+            usleep(1000);
             break;
 
         default:
@@ -1227,33 +1282,46 @@ void ControlMoteur::goTo(double positionX,double positionY) {
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::setVitesse(double vitesse) {
     printf("ControlMoteur::Debug : vitesse affecte a %lf mm/s\n",vitesse);
+
 }
 
 // [!] A IMPLEMENTER PAR AYMERIC
 void ControlMoteur::setRaideur(double raideur) {
     printf("ControlMoteur::Debug : raideur affecte a %lf N/mm\n",raideur);
+    this->raideur = raideur;
 }
 
 // [!] A IMPLEMENTER PAR AYMERIC
 void ControlMoteur::setViscosite(double viscosite) {
     printf("ControlMoteur::Debug : viscosite affecte a %lf kg/s\n",viscosite); 
+    this->viscosite = viscosite;
 }
 
 // /!\ A VERIFIER
 void ControlMoteur::reset() {
     //Etalonner
     printf("ControlMoteur::Debug : reset\n");
-    mise_en_position0_effecteur();
+    asservissement = ETALONNAGE;
+    // powerOn = true;
+
 }
 
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-    // miseDeplacementManuelForce();
     
     shutdown_all();
-
     miseDeplacementManuelForce();
+    powerOn = true;
+}
+// X : 414 [] Y : 298 
+void ControlMoteur::techno() {
+    printf("ControlMoteur::Debug : techno\n"); 
+    // miseDeplacementManuelForce();
+        read_position(COBID_CAN1_SDO);
+    read_position(COBID_CAN2_SDO);
+    read_position(COBID_CAN3_SDO);
+    
 }
 
 //==================FONCTIONS AVANCEE==================
@@ -1379,12 +1447,15 @@ void ControlMoteur::miseDeplacementManuelForce(){
 
     usleep(100000);
 
-    set_torque(200, COBID_CAN1_SDO);
-    set_torque(200, COBID_CAN2_SDO);
-    set_torque(200, COBID_CAN3_SDO);
+    set_torque(210, COBID_CAN1_SDO);
+    set_torque(210, COBID_CAN2_SDO);
+    set_torque(210, COBID_CAN3_SDO);
 }
 
 void ControlMoteur::mise_en_position0_effecteur(){
+
+
+    uint8_t status = 0;
     bool wait = true;
     powerOn = false;
 
@@ -1400,13 +1471,12 @@ void ControlMoteur::mise_en_position0_effecteur(){
 
     set_relativePosition(COBID_CAN2_SDO, -6400);
     set_relativePosition(COBID_CAN3_SDO, -6400);
-
-    usleep(200000);
-
+    // std::cout << "Checkpoint1" << std::endl;
+    check23EndTarget();
+    // std::cout << "Checkpoint2" << std::endl;
     // sleep(1);
 
-    //On tire vers le haut les moteurs
-
+    //On tire vers le haut l'effecteur
     shutdown(COBID_CAN2_SDO);
     shutdown(COBID_CAN3_SDO);
 
@@ -1416,57 +1486,111 @@ void ControlMoteur::mise_en_position0_effecteur(){
 
     usleep(1500000);
 
-    // int redTorque;
-    // do{
-    //     redTorque = read_torque(COBID_CAN1_SDO);
-    //     usleep(200);
-    // }while(redTorque < 760);
-
-    // //On shutdown les moteurs
-    // shutdown_all();
-
-    // //On definie leur position actuelle comme le point 0 de leur position absolue
-
-
-    // std::cout << "Checkpoint2" << std::endl;
-
     init_asservissementPosition(COBID_CAN1_SDO);
     usleep(100000);
-    
+
     set_relativePosition(COBID_CAN1_SDO, -32000);
 
-    usleep(200000);
+    do{
+        checkEndTarget(&status, COBID_CAN1_SDO);
+    }while(status!=0b001);
+    
+    std::cout << "Checkpoint" << std::endl;
 
-    init_asservissementForce(COBID_CAN1_SDO);
-    init_asservissementForce(COBID_CAN2_SDO);
-    init_asservissementForce(COBID_CAN3_SDO);
+    // //CHECKPOINT : L'effecteur est en haut 
+
+    init_asservissementPosition(COBID_CAN2_SDO);
+    wait = init_asservissementPosition(COBID_CAN3_SDO);
+    while(wait);
+
     usleep(100000);
 
-    set_torque(200, COBID_CAN1_SDO);
-    set_torque(200, COBID_CAN2_SDO);
-    set_torque(200, COBID_CAN3_SDO);
+    set_relativePosition(COBID_CAN2_SDO, 20000);
+    set_relativePosition(COBID_CAN3_SDO, 20000);
 
-    usleep(100000);
+    check23EndTarget();
+    
+    // usleep(100);
 
-
-    shutdown_all();
     def_positionAbsolue(COBID_CAN1_SDO);
+    usleep(1000);
     def_positionAbsolue(COBID_CAN2_SDO);
+    usleep(1000);
     def_positionAbsolue(COBID_CAN3_SDO);
-    // //Mettre les positions ici :
-    positionX = 403;
-    positionY = 538;
 
-    // setPowerToOn();
+
+    usleep(100000);
+
+
+    // // //Mettre les positions ici :
+    positionX = DEFAULTPOSITIONX;
+    positionY = DEFAULTPOSITIONY;
+    double offsetCable[3];
+    Model::_model_position_inverse(positionX, positionY, &offsetCable[0], &offsetCable[1], &offsetCable[2]);
+    Model::setOffsetCable(offsetCable);
+
+    asservissement = POSITION;
 }
 
-// Not finished yet 
-void ControlMoteur::findEffectorSpeed(){
-    //En RPM
-    int velocity[3];
 
-    velocity[0] = read_velocity(COBID_CAN1_SDO);
-    velocity[1] = read_velocity(COBID_CAN2_SDO);
-    velocity[2] = read_velocity(COBID_CAN3_SDO);
+void ControlMoteur::control_haptique(){
+    double couple_moteur[3];
+    findEffectorSpeed(couple_moteur);
+    std::cout << "Couple 1 : " << couple_moteur[0] <<  " Couple 2 : " << couple_moteur[2] << " Couple 3 : " << couple_moteur[2] << std::endl;
 
+    set_torque(couple_moteur[0], COBID_CAN1_SDO);
+    set_torque(couple_moteur[1], COBID_CAN2_SDO);
+    set_torque(couple_moteur[2], COBID_CAN3_SDO);
+    
+}
+
+
+void ControlMoteur::findEffectorSpeed(double couple_moteur[3]){
+    double position[2] = {positionX, positionY}; 
+    
+    // u_int8_t x4
+    printf("increments : %d %d %d",increment[0],increment[1],increment[2]);
+
+    
+    Model::coupleMoteurAsservissemnt(increment, velocity, raideur, viscosite, couple_moteur);
+
+    couple_moteur[0] = Model::torque2TargetTorque(couple_moteur[0]);
+    couple_moteur[1] = Model::torque2TargetTorque(couple_moteur[1]);
+    couple_moteur[2] = Model::torque2TargetTorque(couple_moteur[2]);
+}
+
+void ControlMoteur::updateValeurs(){
+    double position[2] = {positionX, positionY}; 
+
+    //Mise a jour des incréments des moteurs
+    increment[0] = read_position(COBID_CAN1_SDO);
+    increment[1] = read_position(COBID_CAN2_SDO);
+    increment[2] = read_position(COBID_CAN3_SDO);
+
+    //Mise a jour de la vitesse des moteurs
+    velocity[0] = read_velocity(COBID_CAN1_SDO)*0;
+    velocity[1] = read_velocity(COBID_CAN2_SDO)*0;
+    velocity[2] = read_velocity(COBID_CAN3_SDO)*0;
+
+    //Mise a jour de la couple des moteurs
+    torque[0] = read_torque(COBID_CAN1_SDO);
+    torque[1] = read_torque(COBID_CAN2_SDO);
+    torque[2] = read_torque(COBID_CAN3_SDO);
+    
+    //Mise a jour de la position de l'effecteur
+    Model::incrementToPostion(increment[0], increment[1], increment[2], positionX, positionY);
+
+    //Mise a jour de la vitesse de l'effecteur 
+    Model::vitesseMoteur2effecteur(velocity, position, &vitesseEffecteur);
+
+    double position_effecteur[2];
+    position_effecteur[0] = positionX;
+    position_effecteur[1] = positionY;
+
+
+    //Mise a jour de la force de l'effecteur
+    double forceXY[2]; 
+    Model::torqueMoteur2ForceXY(torque,position_effecteur,forceXY);
+    forceX = forceXY[0];
+    forceY = forceXY[1];
 }

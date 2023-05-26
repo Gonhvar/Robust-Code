@@ -197,7 +197,7 @@ class Model {
         static constexpr double MASSE = 0.300; // kg
         static const bool COMPENSE_POIDS = true;
 
-        static constexpr double TENSION_MINIMUM = 1; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
+        static constexpr double TENSION_MINIMUM = 5; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
 
         static constexpr double NOMINAL_TORQUE = 77.5; // mNm (aussi appelle Motor Rated Torque)
 
@@ -232,9 +232,20 @@ class Model {
         //definir longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         static void setOffsetCable(double offsetCable[3]);
 
+        static void torqueMoteur2ForceXY(const double torqueMoteur[3],double const position_effecteur[2] , double forceXY[2]);
+
+        static void torqueMoteur2ForceMoteur(const double torqueMoteur[3], double forceMoteur[3]);
+
+
         // entree force en N
         // target torque (1000=MotorRatedTorque) 
         static double force2targetTorque(double force);
+
+        // entree force en N.mm
+        // target torque (1000=MotorRatedTorque) 
+        static double torque2TargetTorque(double torque);
+
+
 
         // donne la vitesse de l'effecteur en fonction de la vitesse des moteur
         // entree :     
