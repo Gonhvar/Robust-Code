@@ -208,11 +208,7 @@ class InterfaceGraphique {
         // met l'affichage en modepower off
         void setPowerOff();
 
-        // desactive et efface les widgets pour powerON = false
-        void desactiveForPowerOff();
 
-        // active et fait apparaitre les widgets pour powerON = true
-        void activeForPowerOn();
 
     public :
         // lance l'interface dans un thread 
@@ -233,6 +229,16 @@ class InterfaceGraphique {
 
 
         static gboolean callbackWrapper_Rafraichir(gpointer data);
+
+        // desactive et efface les widgets pour powerON = false
+        void desactiveForPowerOff();
+
+        // active et fait apparaitre les widgets pour powerON = true
+        void activeForPowerOn();
+
+        void desactiveResetButton();
+
+        void activeResetButton();
 
 
 
