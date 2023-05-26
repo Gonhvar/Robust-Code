@@ -754,3 +754,12 @@ void InterfaceGraphique::activeForPowerOn() {
 
 
 }
+
+
+void InterfaceGraphique::desactiveResetButton() {
+    gtk_widget_set_sensitive(resetButton, FALSE);
+}
+
+void InterfaceGraphique::activeResetButton() {
+    gtk_widget_set_sensitive(resetButton, TRUE);
+}
