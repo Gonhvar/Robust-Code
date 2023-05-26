@@ -154,6 +154,9 @@ class ControlMoteur {
         int read_position(int id);
         vector<msgRecu> get_value(TPCANMsg toSend);
 
+        //==================HOMING MODE==================
+        bool ControlMoteur::init_homingMode(int id);
+
         //==================PARTIE GRAPHIQUE==================
         // [!] A IMPLEMENTER PAR OLIVIER
         // va etre lance dans un thread

@@ -1118,6 +1118,48 @@ vector<msgRecu> ControlMoteur::get_value(TPCANMsg toSend){
 }
 
 
+//==================HOMING MODE==================
+
+
+bool ControlMoteur::init_homingMode(int id){
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+    //Modes of operation (Homing Mode)
+    msg_data[0] = 0x06;
+    init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
+    write_message(msg);
+
+    //Mettre config ici 
+
+
+    //Select homing method
+    msg_data[0] = 0x01;
+    init_msg_SDO(&msg, id, W_1B, HOMING_METHOD, 0x00, msg_data);
+    write_message(msg);
+
+    usleep(200000);
+
+
+    //Controlword (Shutdown)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x06;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    usleep(1000);
+
+    //Controlword (Switch On & Enable)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    return false;
+}
+
+
 
 
 
@@ -1321,10 +1363,11 @@ void ControlMoteur::disco() {
 void ControlMoteur::techno() {
     printf("ControlMoteur::Debug : techno\n"); 
     // miseDeplacementManuelForce();
-        read_position(COBID_CAN1_SDO);
-    read_position(COBID_CAN2_SDO);
-    read_position(COBID_CAN3_SDO);
-    
+    //     read_position(COBID_CAN1_SDO);
+    // read_position(COBID_CAN2_SDO);
+    // read_position(COBID_CAN3_SDO);
+
+    init_homingMode(COBID_CAN1_SDO);
 }
 
 //==================FONCTIONS AVANCEE==================
