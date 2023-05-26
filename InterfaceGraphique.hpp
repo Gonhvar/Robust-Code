@@ -194,6 +194,14 @@ class InterfaceGraphique {
 
         void detruireHaptiqueBox();
 
+        void updateDisplayPower();
+
+        // met l'affiche en mode power on
+        void setPowerOn();
+
+        // met l'affichage en modepower off
+        void setPowerOff();
+
     public :
         // lance l'interface dans un thread 
         InterfaceGraphique(Rasberry *rasberry, ControlMoteur *controlMoteur);
@@ -215,11 +223,6 @@ class InterfaceGraphique {
         static gboolean callbackWrapper_Rafraichir(gpointer data);
 
 
-        // met l'affiche en mode power on
-        void setPowerOn();
-
-        // met l'affichage en modepower off
-        void setPowerOff();
 
 
 
