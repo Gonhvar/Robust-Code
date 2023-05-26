@@ -178,6 +178,19 @@ void InterfaceGraphique::initWigets() {
     momentYLabel = gtk_label_new("My");
     gtk_container_add(GTK_CONTAINER(momentBox), momentYLabel);
 
+    // couple moteur :
+    coupleMoteurBox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
+    setMargin(coupleMoteurBox,20);
+    gtk_box_pack_start(GTK_BOX(recordDataBox), coupleMoteurBox, FALSE, FALSE, 0);
+    coupleMoteurILabel = gtk_label_new("couple I");
+    gtk_container_add(GTK_CONTAINER(coupleMoteurBox), coupleMoteurILabel);
+    coupleMoteurIILabel = gtk_label_new("couple II");
+    gtk_container_add(GTK_CONTAINER(coupleMoteurBox), coupleMoteurIILabel);
+    coupleMoteurIIILabel = gtk_label_new("couple III");
+    gtk_container_add(GTK_CONTAINER(coupleMoteurBox), coupleMoteurIIILabel);
+
+
+
 
     // bouton change Power :
     changePowerButton = gtk_button_new_with_label("Moteur hors tension");
@@ -411,13 +424,16 @@ void InterfaceGraphique::rafraichir() {
     double coupleX=0;
     double coupleY=0;
 
+    double coupleMoteur[3];
+
 
     controlMoteur->getPosition(positionX,positionY);
     controlMoteur->getForce(forceX,forceY);
     rasberry->getCouples(coupleX,coupleY);
+    controlMoteur->getCoupleMoteur(coupleMoteur);
 
 
-    updateData(positionX,positionY,forceX,forceY,coupleX,coupleY);
+    updateData(positionX,positionY,forceX,forceY,coupleX,coupleY,coupleMoteur);
 
 
     updateDisplayPower();
@@ -426,7 +442,7 @@ void InterfaceGraphique::rafraichir() {
 }
 
 
-void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double forceY, double coupleX, double coupleY) {
+void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double forceY, double coupleX, double coupleY, double coupleMoteur[3]) {
     int nombreDecimal = 2;
 
     // position :
@@ -457,6 +473,21 @@ void InterfaceGraphique::updateData(double positionX,double positionY, double fo
         valeur.str(""); // vide le stream
     valeur << "My : " << coupleY << " N.mm";
     gtk_label_set_text(GTK_LABEL(momentYLabel),valeur.str().c_str());
+
+
+    // couple moteur :
+    valeur.str(""); // vide le stream
+    valeur << "coupleMoteurI : " << coupleMoteur[0] << " N.mm";
+    gtk_label_set_text(GTK_LABEL(coupleMoteurILabel),valeur.str().c_str());
+
+    valeur.str(""); // vide le stream
+    valeur << "coupleMoteurII : " << coupleMoteur[1] << " N.mm";
+    gtk_label_set_text(GTK_LABEL(coupleMoteurIILabel),valeur.str().c_str());
+
+    valeur.str(""); // vide le stream
+    valeur << "coupleMoteurIII : " << coupleMoteur[2] << " N.mm";
+    gtk_label_set_text(GTK_LABEL(coupleMoteurIIILabel),valeur.str().c_str());
+
 
 
 

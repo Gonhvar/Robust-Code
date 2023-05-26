@@ -82,10 +82,18 @@ class InterfaceGraphique {
         GtkWidget *forceXLabel;
         GtkWidget *forceYLabel;
 
+
+
         // moment :
         GtkWidget *momentBox;
         GtkWidget *momentXLabel;
         GtkWidget *momentYLabel;
+
+        // couple moteur :
+        GtkWidget *coupleMoteurBox;
+        GtkWidget *coupleMoteurILabel;
+        GtkWidget *coupleMoteurIILabel;
+        GtkWidget *coupleMoteurIIILabel;
 
         GtkWidget *changePowerButton;
 
@@ -149,7 +157,7 @@ class InterfaceGraphique {
 
 
         // met a jour l'affichage de la data
-        void updateData(double positionX,double positionY, double forceX, double froceY, double coupleX, double coupleY);
+        void updateData(double positionX,double positionY, double forceX, double froceY, double coupleX, double coupleY, double coupleMoteur[3]);
 
         static void addCSS(GtkWidget* window);
 
