@@ -390,6 +390,9 @@ void InterfaceGraphique::rafraichir() {
     updateData(positionX,positionY,forceX,forceY,coupleX,coupleY);
 
 
+    updateDisplayPower();
+
+
 }
 
 
@@ -663,4 +666,14 @@ void InterfaceGraphique::setPowerOff() {
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
     addRedBorder(changePowerButton);
     printf("InterfaceGraphique::Debug : power OFF\n");
+}
+
+void InterfaceGraphique::updateDisplayPower() {
+    if (powerOn != controlMoteur->getPowerOn()) {
+        if (powerOn) {
+            setPowerOn();
+        } else {
+            setPowerOff();
+        }
+    }
 }
