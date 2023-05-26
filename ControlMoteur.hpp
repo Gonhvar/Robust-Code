@@ -175,6 +175,8 @@ class ControlMoteur {
         // affecte a forceX et forceY la force engendree par les moteurs sur la sonde en N
         void getForce(double &forceX, double &forceY);
 
+        void getCoupleMoteur(double coupleMoteur[3]);
+
         // affecte a positionX et positionY la position de l'effecteur en mm
         void getPosition(double &positionX, double &positionY);
 
@@ -218,6 +220,8 @@ class ControlMoteur {
         void disco();
 
         void techno();
+
+
 
         // fonction blocante qui attend que le thread se finisse
         // /!\ appeler qu'une fois

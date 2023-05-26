@@ -1191,6 +1191,12 @@ void ControlMoteur::getForce(double &forceX, double &forceY) {
     forceY = this->forceY;
 }
 
+void ControlMoteur::getCoupleMoteur(double coupleMoteur[3]){
+    coupleMoteur[0] = this->torque[0];
+    coupleMoteur[1] = this->torque[1];
+    coupleMoteur[2] = this->torque[2];
+}
+
 void ControlMoteur::changeAsservissement(){
     bool precPower = powerOn;
 
@@ -1370,15 +1376,9 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
 
     //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
     printf("En %d points\n", nb_points);
-
-    // pour calcul fps
-    // clock_t start_time= clock();clock_t end_time;
-    // double fps;
-    
-    //On met le moteur 1 en force (3N)
-    //set_torque(Model::force2targetTorque(5), COBID_CAN1_SDO);
     
     for(int i=0; i<nb_points; i++){
+            updateValeurs();
         //On incrémente en fonction du nombre de points
         // if(i<= abs(ptsDeplacementX)){
             wantPosX += deplacementIncrX;
@@ -1390,17 +1390,12 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
         
         //Calcul des positions voulue avec wantPosX et wantPosY :
         
-        //===========================================================A FAIRE
-        std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
+        //===========================================================
+        // std::cout<< "wantX : " << wantPosX << " et Y : " << wantPosY << std::endl;
         Model::increment_moteur_from_pos(wantPosX, wantPosY, &val_motor1, &val_motor2, &val_motor3);
-        std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
-        //===========================================================FIN
+        // std::cout<<"mot1 : " << val_motor1 <<" mot2 : " << val_motor2 << " et 3 : " << val_motor3 << std::endl;
+        //===========================================================
         //Envoi les données dans les moteurs
-
-        //set_relativePosition(COBID_CAN1_SDO, val_motor1);
-
-        //set_relativePosition(COBID_CAN2_SDO, val_motor2);
-        //set_relativePosition(COBID_CAN3_SDO, val_motor3);
         
         set_absolutePosition(COBID_CAN1_SDO, val_motor1);
         set_absolutePosition(COBID_CAN2_SDO, val_motor2);
@@ -1414,21 +1409,11 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
 
         //================================ 
         read_value = read_position(COBID_CAN1_SDO);
-        std::cout << "Valeur atteinte : " << read_value << std::endl;
+        // std::cout << "Valeur atteinte : " << read_value << std::endl;
         
         //On met à jour la position de l'effecteur
         positionX = wantPosX;
         positionY = wantPosY;
-
-
-        // calcul fps
-        // end_time = clock();
-        // fps = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
-        // fps=1/fps;
-        // start_time = clock();
-        // printf("Les fps sont : deplacements %f par secondes\n", fps);
-        // printf("pourcentage avancement : %.1f %% , %d / %d",(i+1)/(double)nb_points*100, (i+1),nb_points);
-        // printf("\n");
     }
 
     enDeplacement = false;
@@ -1572,10 +1557,12 @@ void ControlMoteur::updateValeurs(){
     velocity[1] = read_velocity(COBID_CAN2_SDO)*0;
     velocity[2] = read_velocity(COBID_CAN3_SDO)*0;
 
+
+
     //Mise a jour de la couple des moteurs
-    torque[0] = read_torque(COBID_CAN1_SDO);
-    torque[1] = read_torque(COBID_CAN2_SDO);
-    torque[2] = read_torque(COBID_CAN3_SDO);
+    torque[0] = ((double)read_torque(COBID_CAN1_SDO))/1000*Model::NOMINAL_TORQUE;
+    torque[1] = ((double)read_torque(COBID_CAN2_SDO))/1000*Model::NOMINAL_TORQUE;
+    torque[2] = ((double)read_torque(COBID_CAN3_SDO))/1000*Model::NOMINAL_TORQUE;
     
 
     //Mise a jour de la vitesse de l'effecteur 
@@ -1585,7 +1572,7 @@ void ControlMoteur::updateValeurs(){
     position_effecteur[0] = positionX;
     position_effecteur[1] = positionY;
 
-
+    
     //Mise a jour de la force de l'effecteur
     double forceXY[2]; 
     Model::torqueMoteur2ForceXY(torque,position_effecteur,forceXY);

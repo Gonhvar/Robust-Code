@@ -197,7 +197,7 @@ class Model {
         static constexpr double MASSE = 0.300; // kg
         static const bool COMPENSE_POIDS = true;
 
-        static constexpr double TENSION_MINIMUM = 5; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
+        static constexpr double TENSION_MINIMUM = 10; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
 
         static constexpr double NOMINAL_TORQUE = 77.5; // mNm (aussi appelle Motor Rated Torque)
 
