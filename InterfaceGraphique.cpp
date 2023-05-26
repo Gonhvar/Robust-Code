@@ -215,7 +215,17 @@ void InterfaceGraphique::initWigets() {
     // --- BOTTOM ---
 
     // resetButton
-    resetButton = gtk_button_new_with_label("Etalloner");
+    resetButton = gtk_button_new_with_label("Etalonner");
+
+    // GtkTooltip * _tooltip= gtk_tooltip_new(); 
+    // gtk_tooltips_set_tip(_tooltip, label, "text", NULL);
+    
+    // // Create a tooltip
+    // Gtk::Tooltip tooltip;
+    // tooltip.set_text("This is a tooltip message");
+
+    // // Set the tooltip to the button
+    // resetButton.set_tooltip(tooltip);
     gtk_box_pack_start(GTK_BOX(bottom), resetButton, FALSE, FALSE, 0);
     g_signal_connect(resetButton, "clicked", G_CALLBACK(callBack_Reset), this);
 
@@ -229,6 +239,7 @@ void InterfaceGraphique::initWigets() {
 
 
     setWigetForSpecificMode();
+    desactiveForPowerOff();
     gtk_widget_show_all(window);
 
 
@@ -659,6 +670,7 @@ void InterfaceGraphique::setPowerOn() {
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
     addGreenBorder(changePowerButton);
     printf("InterfaceGraphique::Debug : power ON\n");
+    activeForPowerOn();
 }
 
 void InterfaceGraphique::setPowerOff() {
@@ -666,14 +678,41 @@ void InterfaceGraphique::setPowerOff() {
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
     addRedBorder(changePowerButton);
     printf("InterfaceGraphique::Debug : power OFF\n");
+    desactiveForPowerOff();
 }
 
 void InterfaceGraphique::updateDisplayPower() {
     if (powerOn != controlMoteur->getPowerOn()) {
-        if (powerOn) {
+        if (controlMoteur->getPowerOn()) {
             setPowerOn();
         } else {
             setPowerOff();
         }
     }
+}
+
+void InterfaceGraphique::desactiveForPowerOff() {
+    gtk_widget_set_sensitive(changeModeButton, FALSE);
+
+    gtk_widget_set_sensitive(setVitesseButton, FALSE);
+    gtk_widget_set_sensitive(goToButton, FALSE);
+
+    gtk_widget_set_sensitive(setViscositeButton, FALSE);
+    gtk_widget_set_sensitive(setRaideurButton, FALSE);
+
+}
+
+
+// active et fait apparaitre les widgets pour powerON = true
+void InterfaceGraphique::activeForPowerOn() {
+    gtk_widget_set_sensitive(changeModeButton, TRUE);
+
+    gtk_widget_set_sensitive(setVitesseButton, TRUE);
+    gtk_widget_set_sensitive(goToButton, TRUE);
+
+    gtk_widget_set_sensitive(setViscositeButton, TRUE);
+    gtk_widget_set_sensitive(setRaideurButton, TRUE);
+
+
+
 }

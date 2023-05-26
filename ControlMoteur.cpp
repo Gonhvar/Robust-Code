@@ -55,7 +55,7 @@ TPCANHandle ControlMoteur::find_channel(){
             }
         }
         else {
-            exit(1);
+            //exit(1); [!] REMETRE
         }
     }
     else{

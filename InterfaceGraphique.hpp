@@ -202,6 +202,12 @@ class InterfaceGraphique {
         // met l'affichage en modepower off
         void setPowerOff();
 
+        // desactive et efface les widgets pour powerON = false
+        void desactiveForPowerOff();
+
+        // active et fait apparaitre les widgets pour powerON = true
+        void activeForPowerOn();
+
     public :
         // lance l'interface dans un thread 
         InterfaceGraphique(Rasberry *rasberry, ControlMoteur *controlMoteur);
