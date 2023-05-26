@@ -1581,7 +1581,7 @@ void ControlMoteur::updateValeurs(){
     Model::incrementToPostion(increment[0], increment[1], increment[2], positionX, positionY);
 
     //Mise a jour de la vitesse de l'effecteur 
-    Model::vitesseMoteur2effecteur(velocity, position, &vitesseEffecteur);
+    Model::vitesseMoteur2effecteur(velocity, position, vitesseEffecteur);
 
     double position_effecteur[2];
     position_effecteur[0] = positionX;
