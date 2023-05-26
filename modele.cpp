@@ -1,6 +1,7 @@
 #include "modele.hpp"
 
 #include <stdlib.h>
+#include <iostream>
 
 
 int Model::OFFSET_CABLE_I = Model::OFFSET_CABLE_I_ORIGINE; 
@@ -20,9 +21,13 @@ void Model::_model_position_inverse(double pos_X_effecteur, double pos_Y_effecte
 
 double Model::_size_cable_to_increment(double size_cable) {
     return -size_cable*INCREMENTS_PAR_TOUR/(RAPPORT_REDUCTON*2*RAYON_ROUE*PI);
-
-
 }
+
+double Model::_increment_to_size_cable(int incrementMoteur) {
+    return (-(double)incrementMoteur)/((double)INCREMENTS_PAR_TOUR)*2*PI*RAYON_ROUE*RAPPORT_REDUCTON;
+}
+
+
 
 void Model::increment_moteur_from_pos(double pos_X_effecteur, double pos_Y_effecteur,int *increment_moteur_A, int *increment_moteur_B, int *increment_moteur_C) {
     double size_cable_A;
@@ -113,9 +118,11 @@ int Model::intersection_cercles(PointD centre1, double rayon1, PointD centre2, d
 
 void Model::_init_jacobienne(const double origine_cable[6], const double position_accroche_effecteur[6], double jacobienne[6]) {
     double d1 = sqrt(pow(origine_cable[0]-position_accroche_effecteur[0],2)+pow(origine_cable[1]-position_accroche_effecteur[1],2));
+
     double u1[2]; u1[0]=origine_cable[0]-position_accroche_effecteur[0]; u1[1]=origine_cable[1]-position_accroche_effecteur[1];
 
     double d2 = sqrt(pow(origine_cable[2]-position_accroche_effecteur[2],2)+pow(origine_cable[3]-position_accroche_effecteur[3],2));
+
     double u2[2]; u2[0]=origine_cable[2]-position_accroche_effecteur[2]; u2[1]=origine_cable[3]-position_accroche_effecteur[3];
 
     double d3 = sqrt(pow(origine_cable[4]-position_accroche_effecteur[4],2)+pow(origine_cable[5]-position_accroche_effecteur[5],2));
@@ -402,10 +409,10 @@ void Model::couple_moteur_for_force(double const force_operationnelle[2], double
     
 }
 
-void Model::coupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]) {
+void Model::PrecoupleMoteurAsservissemnt(double const position_effecteur[2] ,double const vitesse_effecteur[2], double raideur, double viscosite ,double couple_moteur[3]) {
     double forceSurEffecteur[2];
-    forceSurEffecteur[0] = raideur*position_effecteur[0] + viscosite*vitesse_effecteur[0]/1000; // [viscosite*vitesse_effecteur[0]/1000] = kg/s * m/s = N
-    forceSurEffecteur[1] = raideur*position_effecteur[1] + viscosite*vitesse_effecteur[1]/1000;
+    forceSurEffecteur[0] = -raideur*(position_effecteur[0]-CENTRE_MILIEU_ELASTIQUE_X) + viscosite*vitesse_effecteur[0]/1000; // [viscosite*vitesse_effecteur[0]/1000] = kg/s * m/s = N
+    forceSurEffecteur[1] = -raideur*(position_effecteur[1]-CENTRE_MILIEU_ELASTIQUE_Y) + viscosite*vitesse_effecteur[1]/1000;
     couple_moteur_for_force(forceSurEffecteur,position_effecteur,couple_moteur);
 }
 
@@ -421,21 +428,21 @@ void Model::setOffsetCable(double offsetCable[3]) {
 }
 
 
-int Model::force2targetTorque(double force) {
+double Model::force2targetTorque(double force) {
     double forceMoteur = force*RAPPORT_REDUCTON;
     double coupleMoteur = forceMoteur*RAYON_ROUE;
-<<<<<<< HEAD
-    return (int) (coupleMoteur/NOMINAL_TORQUE*1000);
-=======
     return coupleMoteur/NOMINAL_TORQUE*1000;
 }
 
 void Model::vitesseMoteur2effecteur(double const vitesseMoteur[3],double const position_effecteur[2], double vitesseEffecteur[2]) {
     double jacobienne[6]; // matrice 2x3
     Model::_init_jacobienne(position_effecteur, jacobienne);
+
+
+
     // vitesseEffecteur = vitesseMoteur x jacobienne :
     vitesseEffecteur[0] = jacobienne[0]*vitesseMoteur[0]+jacobienne[1]*vitesseMoteur[1]+jacobienne[2]*vitesseMoteur[2];
-    vitesseEffecteur[1] = jacobienne[4]*vitesseMoteur[0]+jacobienne[5]*vitesseMoteur[1]+jacobienne[6]*vitesseMoteur[2];
+    vitesseEffecteur[1] = jacobienne[3]*vitesseMoteur[0]+jacobienne[4]*vitesseMoteur[1]+jacobienne[5]*vitesseMoteur[2];
 }
 
 void Model::_init_jacobienne(double const position_effecteur[2], double jacobienne[6]) {
@@ -457,5 +464,82 @@ void Model::_init_jacobienne(double const position_effecteur[2], double jacobien
     position_accroche_effecteur[5]=position_effecteur[1];
 
     Model::_init_jacobienne(origine_cable, position_accroche_effecteur, jacobienne);
->>>>>>> 52d1f4d09a819c93a927d8d088f47588f7352650
+}
+
+
+
+void Model::incrementToPostion(int incrementMoteurI, int incrementMoteurII, int incrementMoteurIII,  double &positionEffecteurX , double &positionEffecteurY) {
+    double longueurCableI = _increment_to_size_cable(incrementMoteurI)+OFFSET_CABLE_I;
+    double longueurCableII = _increment_to_size_cable(incrementMoteurII) +OFFSET_CABLE_II;
+    double longueurCableIII = _increment_to_size_cable(incrementMoteurIII)+OFFSET_CABLE_III;
+
+
+
+    PointD centreMoteurI; centreMoteurI.x = MOTEUR_I_POSITION_X; centreMoteurI.y = MOTEUR_I_POSITION_Y ;
+    PointD centreMoteurII; centreMoteurII.x = MOTEUR_II_POSITION_X; centreMoteurII.y = MOTEUR_II_POSITION_Y ;
+    PointD centreMoteurIII; centreMoteurIII.x = MOTEUR_III_POSITION_X; centreMoteurIII.y = MOTEUR_III_POSITION_Y ;
+
+
+    // calcul intersection cable I et II :
+    PointD intersection1, intersection2, interesectionTrouveeIetII;
+    intersection_cercles(centreMoteurI,longueurCableI,centreMoteurII,longueurCableII,&intersection1, &intersection2);
+    double intersection1_tab[2]; intersection1_tab[0]= intersection1.x ; intersection1_tab[1]= intersection1.y;
+    double intersection2_tab[2]; intersection2_tab[0]= intersection2.x ; intersection2_tab[1]= intersection2.y;
+
+    if (in_triangle(intersection1_tab)) {
+        interesectionTrouveeIetII = intersection1;
+    } else if (in_triangle(intersection2_tab)) {
+        interesectionTrouveeIetII = intersection2;
+    } else  {
+        printf("[!] Model::incrementToPostion -> aucune intersection trouvee ");
+    }
+
+    // calcul intersection cable II et III :
+    PointD interesectionTrouveeIIetIII;
+    intersection_cercles(centreMoteurII,longueurCableII,centreMoteurIII,longueurCableIII,&intersection1, &intersection2);
+    intersection1_tab[2]; intersection1_tab[0]= intersection1.x ; intersection1_tab[1]= intersection1.y;
+    intersection2_tab[2]; intersection2_tab[0]= intersection2.x ; intersection2_tab[1]= intersection2.y;
+
+    if (in_triangle(intersection1_tab)) {
+        interesectionTrouveeIIetIII = intersection1;
+    } else if (in_triangle(intersection2_tab)) {
+        interesectionTrouveeIIetIII = intersection2;
+    } else  {
+        printf("[!] Model::incrementToPostion -> aucune intersection trouvee ");
+    }
+
+    // calcul intersection cable I et III :
+    PointD interesectionTrouveeIetIII;
+    intersection_cercles(centreMoteurI,longueurCableI,centreMoteurIII,longueurCableIII,&intersection1, &intersection2);
+    intersection1_tab[2]; intersection1_tab[0]= intersection1.x ; intersection1_tab[1]= intersection1.y;
+    intersection2_tab[2]; intersection2_tab[0]= intersection2.x ; intersection2_tab[1]= intersection2.y;
+
+    if (in_triangle(intersection1_tab)) {
+        interesectionTrouveeIetIII = intersection1;
+    } else if (in_triangle(intersection2_tab)) {
+        interesectionTrouveeIetIII = intersection2;
+    } else  {
+        printf("[!] Model::incrementToPostion -> aucune intersection trouvee ");
+    }
+
+    positionEffecteurX = (interesectionTrouveeIetII.x + interesectionTrouveeIIetIII.x + interesectionTrouveeIetIII.x)/3;
+    positionEffecteurY = (interesectionTrouveeIetII.y + interesectionTrouveeIIetIII.y + interesectionTrouveeIetIII.y)/3;
+
+
+}
+
+
+
+double Model::tourParMinute2VitesseCable(double tourParMinuete) {
+    return tourParMinuete*60*2*PI*RAYON_ROUE*RAPPORT_REDUCTON;
+}
+
+void Model::coupleMoteurAsservissemnt(int const incrementMoteurs[3] ,double const vitesse_moteur[3], double raideur, double viscosite ,double couple_moteur[3]) {
+    double positionEffecteur[2];
+    incrementToPostion(incrementMoteurs[0],incrementMoteurs[1],incrementMoteurs[2],positionEffecteur[0],positionEffecteur[1]);
+
+    double vitesseEffecteur[2];
+    vitesseMoteur2effecteur(vitesse_moteur,positionEffecteur,vitesseEffecteur);
+
+    PrecoupleMoteurAsservissemnt(positionEffecteur,vitesseEffecteur,raideur,viscosite,couple_moteur);
 }
