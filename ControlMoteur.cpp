@@ -1253,9 +1253,11 @@ void ControlMoteur::reset() {
 // [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-    set_torque(200, COBID_CAN1_SDO);
-    set_torque(200, COBID_CAN2_SDO);
-    set_torque(200, COBID_CAN3_SDO);
+    // set_torque(200, COBID_CAN1_SDO);
+    // set_torque(200, COBID_CAN2_SDO);
+    // set_torque(200, COBID_CAN3_SDO);
+
+    miseDeplacementManuelForce();
 
     // bool wait = true;
     // init_asservissementPosition(COBID_CAN1_SDO);
@@ -1387,47 +1389,68 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     enDeplacement = false;
 }
 
+void ControlMoteur::miseDeplacementManuelForce(){
+    bool wait = true;
+    shutdown_all();
+
+    init_asservissementForce(COBID_CAN1_SDO);
+    init_asservissementForce(COBID_CAN2_SDO);
+    wait = init_asservissementForce(COBID_CAN3_SDO);
+
+    usleep(100000);
+
+    set_torque(200, COBID_CAN1_SDO);
+    set_torque(200, COBID_CAN2_SDO);
+    set_torque(200, COBID_CAN3_SDO);
+}
+
 void ControlMoteur::mise_en_position0_effecteur(){
     bool wait = true;
     powerOn = false;
 
-    // init_asservissementPosition(COBID_CAN1_SDO);
-    // init_asservissementPosition(COBID_CAN2_SDO);
-    // wait = init_asservissementPosition(COBID_CAN3_SDO);
-    // while(wait);
+    miseDeplacementManuelForce();
+    usleep(200000);
 
-    // set_relativePosition(COBID_CAN1_SDO, -1200);
-    // set_relativePosition(COBID_CAN2_SDO, -1200);
-    // set_relativePosition(COBID_CAN2_SDO, -1200);
-
-    // // usleep(1000);
-    def_positionAbsolue(COBID_CAN1_SDO);
-
-    sleep(1);
-
-    init_asservissementPosition(COBID_CAN1_SDO);
-    init_asservissementForce(COBID_CAN2_SDO);
-    wait = init_asservissementForce(COBID_CAN3_SDO);
+    init_asservissementForce(COBID_CAN1_SDO);
+    init_asservissementPosition(COBID_CAN2_SDO);
+    wait = init_asservissementPosition(COBID_CAN3_SDO);
     while(wait);
 
-    // usleep(3000);
-    sleep(1);
+    usleep(100000);
+
+    def_positionAbsolue(COBID_CAN2_SDO);
+    def_positionAbsolue(COBID_CAN3_SDO);
+
+    usleep(100000);
+    // sleep(1);
 
     //On tire vers le haut les moteurs
     // set_torque(Model::force2targetTorque(5), COBID_CAN1_SDO);
-    // set_torque(300, COBID_CAN1_SDO);
-    set_absolutePosition(COBID_CAN1_SDO, 0x0DFFFF);
-    
+    // set_absolutePosition(COBID_CAN1_SDO, 0x0DFFFF);
 
-    int redTorque;
-    do{
-        redTorque = read_torque(COBID_CAN1_SDO);
-        usleep(200);
-    }while(redTorque < 760);
+
+    set_absolutePosition(COBID_CAN2_SDO, -50000);
+    set_absolutePosition(COBID_CAN3_SDO, -50000);
+
+    usleep(3000000);
+
+    set_absolutePosition(COBID_CAN2_SDO, -70000);
+    set_absolutePosition(COBID_CAN3_SDO, -70000);
+
+    usleep(3000000);
+    
+    set_torque(400, COBID_CAN1_SDO);
+
+    usleep(1000000);
+
+    // int redTorque;
+    // do{
+    //     redTorque = read_torque(COBID_CAN1_SDO);
+    //     usleep(200);
+    // }while(redTorque < 760);
 
     // //On shutdown les moteurs
     shutdown_all();
-    // powerOn = false;
 
     // //On definie leur position actuelle comme le point 0 de leur position absolue
     def_positionAbsolue(COBID_CAN1_SDO);

@@ -18,24 +18,24 @@ int main(int argc, char *argv[])
     double position_effecteur[2] = {550,150};
     double vitesseEffecteur[2];
 
-    Model::vitesseMoteur2effecteur(vitesseMoteur,position_effecteur,vitesseEffecteur);
+    // Model::vitesseMoteur2effecteur(vitesseMoteur,position_effecteur,vitesseEffecteur);
 
-    printf("Vx %f Vy %f\n",vitesseEffecteur[0],vitesseEffecteur[1]);
+    // printf("Vx %f Vy %f\n",vitesseEffecteur[0],vitesseEffecteur[1]);
 
-    // ControlMoteur controlMoteur;
-    // Rasberry rasberry;
+    ControlMoteur controlMoteur;
+    Rasberry rasberry;
 
-    // InterfaceGraphique interfaceGraphique(&rasberry, &controlMoteur);
-
-
+    InterfaceGraphique interfaceGraphique(&rasberry, &controlMoteur);
 
 
 
 
 
-    // interfaceGraphique.waitEnd();
-    // controlMoteur.waitEnd();
-    // rasberry.waitEnd();
+
+
+    interfaceGraphique.waitEnd();
+    controlMoteur.waitEnd();
+    rasberry.waitEnd();
 
 
 
