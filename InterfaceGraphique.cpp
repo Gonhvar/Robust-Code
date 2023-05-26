@@ -335,19 +335,7 @@ void InterfaceGraphique::changeMode() {
 
 
 void InterfaceGraphique::changePower() {
-    if (powerOn) {
-        powerOn=false;
-        controlMoteur->setPowerToOff();
-        gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
-        addRedBorder(changePowerButton);
-        printf("InterfaceGraphique::Debug : power OFF\n");
-    } else {
-        powerOn=true;
-        controlMoteur->setPowerToOn();
-        gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
-        addGreenBorder(changePowerButton);
-        printf("InterfaceGraphique::Debug : power ON\n");
-    }   
+    controlMoteur->changePower();
 }
 
 void InterfaceGraphique::goTo(float positonX, float positionY) {
@@ -660,4 +648,19 @@ void InterfaceGraphique::warning(std::string typeDonnee, std::string data) {
     myfile.open (data);
     myfile << (data+" -> "+typeDonnee) <<std::endl;
     myfile.close();
+}
+
+
+void InterfaceGraphique::setPowerOn() {
+    powerOn=true;
+    gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
+    addGreenBorder(changePowerButton);
+    printf("InterfaceGraphique::Debug : power ON\n");
+}
+
+void InterfaceGraphique::setPowerOff() {
+    powerOn=false;
+    gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
+    addRedBorder(changePowerButton);
+    printf("InterfaceGraphique::Debug : power OFF\n");
 }
