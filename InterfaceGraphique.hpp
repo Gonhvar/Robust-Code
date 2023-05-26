@@ -14,8 +14,8 @@ class InterfaceGraphique {
         const static int WIDTH_WINDOW = 1080;
         const static int HEIGHT_WINDOW = 720;
 
-        const static int WIDTH_DRAWING_AREA = 500;
-        const static int HEIGHT_DRAWING_AREA = 350;
+        const static int WIDTH_DRAWING_AREA = 400;
+        const static int HEIGHT_DRAWING_AREA = 250;
 
         const static int PERIODE_RAFRAICHISSEMENT = 30; // en ms
 
