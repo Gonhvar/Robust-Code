@@ -1367,7 +1367,7 @@ void ControlMoteur::disco() {
 }
 // X : 414 [] Y : 298 
 void ControlMoteur::techno() {
-    printf("ControlMoteur::Debug : techno\n"); 
+    // printf("ControlMoteur::Debug : techno\n"); 
     // miseDeplacementManuelForce();
     //     read_position(COBID_CAN1_SDO);
     // read_position(COBID_CAN2_SDO);
@@ -1385,9 +1385,9 @@ void ControlMoteur::techno() {
 
     // usleep(100000);
 
-    // set_relativePosition(COBID_CAN1_SDO, -6400);
-    // set_relativePosition(COBID_CAN2_SDO, -6400);
-    // set_relativePosition(COBID_CAN3_SDO, -6400);
+    // set_relativePosition(COBID_CAN1_SDO, -10000);
+    // set_relativePosition(COBID_CAN2_SDO, -10000);
+    // set_relativePosition(COBID_CAN3_SDO, -10000);
 
     // checkAllEndTarget();
 
@@ -1423,12 +1423,12 @@ void ControlMoteur::techno() {
 
 
 
-    // // Speed for switch search (to the mechanical end stop)
-    // msg_data[0] = 0x00; // 100 rpm
-    // msg_data[1] = 0x00; 
-    // msg_data[2] = 0x01; 
-    // msg_data[3] = 0x00; 
-    // init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x6099, 0x01, msg_data);
+    // Speed for switch search (to the mechanical end stop)
+    msg_data[0] = 0x00; // 100 rpm
+    msg_data[1] = 0x10; 
+    msg_data[2] = 0x00; 
+    msg_data[3] = 0x00; 
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x6099, 0x01, msg_data);
     // write_message(msg);
 
     // printf("Speed for switch search\n");
@@ -1510,6 +1510,13 @@ void ControlMoteur::techno() {
     write_message(msg);
 
     printf("Controlword (Start homing)\n");
+
+    // uint8_t status;
+
+    // do{
+    //     checkEndTarget(&status, COBID_CAN1_SDO);
+    // } while (status != 0b001);
+    
     sleep(10);
 
     printf("fin\n");
