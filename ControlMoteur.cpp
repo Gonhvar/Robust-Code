@@ -1362,8 +1362,8 @@ void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
     
     shutdown_all();
-    miseDeplacementManuelForce();
-    powerOn = true;
+    // miseDeplacementManuelForce();
+    // powerOn = true;
 }
 // X : 414 [] Y : 298 
 void ControlMoteur::techno() {
@@ -1373,7 +1373,149 @@ void ControlMoteur::techno() {
     // read_position(COBID_CAN2_SDO);
     // read_position(COBID_CAN3_SDO);
 
-    init_homingMode(COBID_CAN1_SDO);
+
+    // miseDeplacementManuelForce();
+    // usleep(500000);
+
+    // printf("fin  miseDeplacementManuelForce()\n");
+
+    // init_asservissementPosition(COBID_CAN1_SDO);
+    // init_asservissementPosition(COBID_CAN2_SDO);
+    // init_asservissementPosition(COBID_CAN3_SDO);
+
+    // usleep(100000);
+
+    // set_relativePosition(COBID_CAN1_SDO, -6400);
+    // set_relativePosition(COBID_CAN2_SDO, -6400);
+    // set_relativePosition(COBID_CAN3_SDO, -6400);
+
+    // checkAllEndTarget();
+
+    // printf("fin attente de deplacement\n");
+
+    // // Eteint
+    // shutdown(COBID_CAN1_SDO);
+    // shutdown(COBID_CAN3_SDO);
+    // shutdown(COBID_CAN3_SDO);
+
+    // sleep(1);
+
+    // printf("moteurs eteints\n");
+
+
+
+
+    TPCANMsg msg;
+    uint8_t msg_data[4];
+    bzero(msg_data, 4);
+
+
+
+    // Modes of operation 
+    msg_data[0] = 0x06; // homing mode
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
+    write_message(msg);
+        usleep(1000000);
+    printf("Modes of operation\n ");
+
+
+
+
+
+
+    // // Speed for switch search (to the mechanical end stop)
+    // msg_data[0] = 0x00; // 100 rpm
+    // msg_data[1] = 0x00; 
+    // msg_data[2] = 0x01; 
+    // msg_data[3] = 0x00; 
+    // init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x6099, 0x01, msg_data);
+    // write_message(msg);
+
+    // printf("Speed for switch search\n");
+
+
+    // usleep(10000);
+
+    // // Speed for zero search (to the next encoder index pulse)
+    // msg_data[0] = 0x01; // 10 rpm
+    // init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x6099, 0x02, msg_data);
+    // write_message(msg);
+
+    // printf("Speed for zero search\n");
+
+    // usleep(10000);
+
+
+    // // Home offset move distance
+    // msg_data[0] = 0x00; 
+    // init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x30B1, 0x00, msg_data);
+    // write_message(msg);
+
+    // printf("Home offset move distance\n");
+
+    // usleep(10000);
+
+
+    printf("debut Current threshold for homing mode\n");
+    // Current threshold for homing mode
+    msg_data[0] = 0x03; // = 1010 (mA) = 50% Nominal current
+    msg_data[1] = 0xED;
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, 0x30B2, 0x00, msg_data);
+    write_message(msg);
+
+    printf("debut Current threshold for homing mode\n");
+
+    // usleep(10000);
+    // // Home position (valeur a laquelle est mise le codeur au moment du homing)
+    // msg_data[0] = 0;
+    // init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x30B0, 0x00, msg_data);
+    // write_message(msg);
+
+    // usleep(10000);
+
+    // Homing method 
+    printf("debut Homing method \n");
+    msg_data[0] = 0xFF; // -1 = "Current Threshold Positive Speed & Index"
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_1B, 0x6098, 0x00, msg_data);
+    write_message(msg);
+    printf("fin Homing method \n");
+
+    usleep(10000);
+
+
+    //Controlword (shutdown)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x06;
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    printf("Controlword (shutdown)\n");
+
+    sleep(1);
+
+    //Controlword (Switch on and Enable)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x0F;
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    printf("Controlword (Switch on and Enable)\n");
+
+    sleep(2);
+
+    //Controlword (Start homing)
+    msg_data[0] = 0x00;
+    msg_data[1] = 0x1F;
+    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    write_message(msg);
+
+    printf("Controlword (Start homing)\n");
+    sleep(10);
+
+    printf("fin\n");
+
+
+    //init_homingMode(COBID_CAN1_SDO);
 }
 
 //==================FONCTIONS AVANCEE==================
@@ -1593,6 +1735,8 @@ void ControlMoteur::findEffectorSpeed(double couple_moteur[3]){
     
     Model::coupleMoteurAsservissemnt(increment, velocity, raideur, viscosite, couple_moteur);
 
+    printf("torque : %.2f %.2f %.2f\n",couple_moteur[0],couple_moteur[1],couple_moteur[2]);
+
     couple_moteur[0] = Model::torque2TargetTorque(couple_moteur[0]);
     couple_moteur[1] = Model::torque2TargetTorque(couple_moteur[1]);
     couple_moteur[2] = Model::torque2TargetTorque(couple_moteur[2]);
@@ -1614,6 +1758,7 @@ void ControlMoteur::updateValeurs(){
     torque[2] = ((double)Int16ToSingnedInt(read_torque(COBID_CAN3_SDO)))/1000*Model::NOMINAL_TORQUE;
     
 
+
     //Mise a jour de la vitesse de l'effecteur 
     Model::vitesseMoteur2effecteur(velocity, position, vitesseEffecteur);
 
@@ -1632,9 +1777,10 @@ void ControlMoteur::updateValeurs(){
 
 int ControlMoteur::Int16ToSingnedInt(uint16_t value) {
     // sortie [−32768, 32767]
-    if (value>32767) {
-        value-=65536;
+    int sortie=value;
+    if (sortie>32767) {
+        sortie-=65536;
     }
-    return value;
+    return sortie;
 }
 
