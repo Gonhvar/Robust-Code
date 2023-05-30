@@ -1514,6 +1514,10 @@ void ControlMoteur::techno() {
 
     printf("fin\n");
 
+    // Eteint
+    shutdown(COBID_CAN2_SDO);
+
+
 
     //init_homingMode(COBID_CAN1_SDO);
 }
