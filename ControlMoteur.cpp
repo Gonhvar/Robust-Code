@@ -1375,7 +1375,7 @@ void ControlMoteur::homing(int id){
 
     // Modes of operation 
     msg_data[0] = 0x06; // homing mode
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, MODES_OF_OPERATION, 0x00, msg_data);
     write_message(msg);
         usleep(1000000);
     printf("Modes of operation\n ");
@@ -1390,7 +1390,7 @@ void ControlMoteur::homing(int id){
     msg_data[1] = 0x10; 
     msg_data[2] = 0x00; 
     msg_data[3] = 0x00; 
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_4B, 0x6099, 0x01, msg_data);
+    init_msg_SDO(&msg, id, W_4B, 0x6099, 0x01, msg_data);
     // write_message(msg);
 
     // printf("Speed for switch search\n");
@@ -1422,7 +1422,7 @@ void ControlMoteur::homing(int id){
     // Current threshold for homing mode
     msg_data[0] = 0x03; // = 1010 (mA) = 50% Nominal current
     msg_data[1] = 0xED;
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, 0x30B2, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, 0x30B2, 0x00, msg_data);
     write_message(msg);
 
     printf("debut Current threshold for homing mode\n");
@@ -1438,7 +1438,7 @@ void ControlMoteur::homing(int id){
     // Homing method 
     printf("debut Homing method \n");
     msg_data[0] = 0xFF; // -1 = "Current Threshold Positive Speed & Index"
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_1B, 0x6098, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_1B, 0x6098, 0x00, msg_data);
     write_message(msg);
     printf("fin Homing method \n");
 
@@ -1448,7 +1448,7 @@ void ControlMoteur::homing(int id){
     //Controlword (shutdown)
     msg_data[0] = 0x00;
     msg_data[1] = 0x06;
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     printf("Controlword (shutdown)\n");
@@ -1458,7 +1458,7 @@ void ControlMoteur::homing(int id){
     //Controlword (Switch on and Enable)
     msg_data[0] = 0x00;
     msg_data[1] = 0x0F;
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     printf("Controlword (Switch on and Enable)\n");
@@ -1468,7 +1468,7 @@ void ControlMoteur::homing(int id){
     //Controlword (Start homing)
     msg_data[0] = 0x00;
     msg_data[1] = 0x1F;
-    init_msg_SDO(&msg, COBID_CAN2_SDO, W_2B, CONTROLWORD, 0x00, msg_data);
+    init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
 
     printf("Controlword (Start homing)\n");
