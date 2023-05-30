@@ -174,6 +174,8 @@ class ControlMoteur {
 
         // sortie [−32768, 32767]
         static int Int16ToSingnedInt(uint16_t value);
+      
+        void ControlMoteur::homing(int id);
         
 
     public:
