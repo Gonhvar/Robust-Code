@@ -483,9 +483,6 @@ void ControlMoteur::def_positionAbsolue(int id){
     msg_data[1] = 0x06;
     init_msg_SDO(&msg, id, W_2B, CONTROLWORD, 0x00, msg_data);
     write_message(msg);
-
-    //Eteindre les moteurs pour eviter tous problémes
-    powerOn = false;
 }
 
 /**
@@ -667,7 +664,7 @@ void ControlMoteur::checkAllEndTarget(){
     //Check si toutes les cartes sont arrivé à destination sinon recheck
     while(status != 0b111){
 
-        //std::cout << "Status : "<< status << std::endl;
+        // std::cout << "Status : "<< status << std::endl;
         switch(status){
             case 0b000 :
                 //Demander à chaques cartes
@@ -1081,7 +1078,7 @@ int ControlMoteur::read_position(int id) {
             switch(g.taille){
                 case R_4B :
                     //4 octets
-                    //std::cout << "Lecture de la position : " << g.valData << std::endl;
+                    // std::cout << "Lecture de la position : " << g.valData << std::endl;
                     increment=g.valData;
                     break;
                     
@@ -1375,16 +1372,9 @@ void ControlMoteur::runControlMoteur() {
                 //On eteint tous les moteurs et on met à jours toutes les valeurs 
                 shutdown_all();
 
-                // init_asservissementPosition(COBID_CAN1_SDO);
-                // usleep(100000);
-
-                // uint8_t status;
-                // set_relativePosition(COBID_CAN1_SDO, 8000);
-                // do{
-                //     checkEndTarget(&status, COBID_CAN1_SDO);
-                // }while(status!=0b001);
-
                 setAllAbsolutePosition();
+
+                asservissement = POSITION;
                 break;
 
             default : 
@@ -1489,7 +1479,7 @@ void ControlMoteur::goTo(double positionX,double positionY) {
         printf("ControlMoteur::Debug : va vers la position %lf mm %lf mm\n",positionX,positionY);
         enDeplacement = true;
     } else {
-        printf("[!] impossible d'aller a une positon en mode haptique\n");
+        printf("[!] impossible d'aller a une position en mode haptique\n");
     }
 }
 
@@ -1528,13 +1518,32 @@ void ControlMoteur::reset() {
 //
 void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
-    shutdown_all();
+    init_asservissementPosition(COBID_CAN1_SDO);
+    init_asservissementPosition(COBID_CAN2_SDO);
+    init_asservissementPosition(COBID_CAN3_SDO);
+    usleep(100000);
+
+    set_relativePosition(COBID_CAN1_SDO, 19000);
+    set_relativePosition(COBID_CAN2_SDO, 3000);
+    set_relativePosition(COBID_CAN3_SDO, 3000);
+
+    checkAllEndTarget();
+    setAllAbsolutePosition();
+    usleep(10000);
 }
 
 // X : 414 [] Y : 298 
 void ControlMoteur::techno() {
     // printf("ControlMoteur::Debug : techno\n"); 
-    
+    init_asservissementPosition(COBID_CAN1_SDO);
+    init_asservissementPosition(COBID_CAN2_SDO);
+    init_asservissementPosition(COBID_CAN3_SDO);
+
+    usleep(100000);
+
+    set_absolutePosition(COBID_CAN1_SDO, 0);
+    set_absolutePosition(COBID_CAN2_SDO, 0);
+    set_absolutePosition(COBID_CAN3_SDO, 0);
 }
 
 //==================FONCTIONS AVANCEE==================
@@ -1786,12 +1795,14 @@ void ControlMoteur::setAllAbsolutePosition(){
 
     usleep(100000);
 
+
     //Mettre les positions ici :
     positionX = DEFAULTPOSITIONX;
     positionY = DEFAULTPOSITIONY;
-    double offsetCable[3];
-    Model::_model_position_inverse(positionX, positionY, &offsetCable[0], &offsetCable[1], &offsetCable[2]);
-    Model::setOffsetCable(offsetCable);
+
+    //Eteindre les moteurs pour eviter tous problémes
+    shutdown_all();
+    powerOn = false;
 
     asservissement = POSITION;
 }

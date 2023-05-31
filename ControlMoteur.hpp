@@ -19,7 +19,7 @@
 using namespace std;
 
 #define POINTS_PAR_MM 10
-#define MM_PAR_POINTS 0.1
+#define MM_PAR_POINTS 0.5
 
 //Definition des COBID
 #define COBID_ALL_CAN_SDO 0x600
@@ -49,8 +49,11 @@ using namespace std;
 #define ACTUALVELOCITY 0x30D3
 #define ACTUALTORQUE 0x6077
 
-#define DEFAULTPOSITIONX 404 - 5
-#define DEFAULTPOSITIONY 65 + 15
+// #define DEFAULTPOSITIONX 395
+// #define DEFAULTPOSITIONY 200
+
+#define DEFAULTPOSITIONX 396 - 20 
+#define DEFAULTPOSITIONY 65 //+ 15
 
 // CONSTANTES MOTEUR
 #define MOTOR_RATED_TORQUE 75.7
