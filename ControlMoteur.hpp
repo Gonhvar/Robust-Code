@@ -49,8 +49,8 @@ using namespace std;
 #define ACTUALVELOCITY 0x30D3
 #define ACTUALTORQUE 0x6077
 
-#define DEFAULTPOSITIONX 400
-#define DEFAULTPOSITIONY 347
+#define DEFAULTPOSITIONX 404 - 5
+#define DEFAULTPOSITIONY 65 + 15
 
 // CONSTANTES MOTEUR
 #define MOTOR_RATED_TORQUE 75.7
@@ -69,7 +69,7 @@ typedef struct tagmsgRecu{
 // /!\ A instancier une seule fois
 class ControlMoteur {
     private :
-        enum Asservissement {POSITION, HAPTIC, ETALONNAGE};
+        enum Asservissement {POSITION, HAPTIC, ETALONNAGE, NONE};
         bool powerOn;
         Asservissement asservissement;
         std::thread *controlMoteurThread;
@@ -156,6 +156,10 @@ class ControlMoteur {
 
         //==================HOMING MODE==================
         bool init_homingMode(int id);
+        void readEndHoming(uint8_t *status, int id);
+        void readAllEndHoming();
+
+        void startHoming(int id);
 
         //==================PARTIE GRAPHIQUE==================
         // [!] A IMPLEMENTER PAR OLIVIER
@@ -171,11 +175,11 @@ class ControlMoteur {
         void findEffectorSpeed(double couple_moteur[3]);
         void updateValeurs();
 
+        void setAllAbsolutePosition();
 
         // sortie [−32768, 32767]
         static int Int16ToSingnedInt(uint16_t value);
       
-        void homing(int id);
         
 
     public:
