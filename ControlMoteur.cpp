@@ -1362,8 +1362,8 @@ void ControlMoteur::disco() {
     printf("ControlMoteur::Debug : disco\n"); 
     
     shutdown_all();
-    miseDeplacementManuelForce();
-    powerOn = true;
+    // miseDeplacementManuelForce();
+    // powerOn = true;
 }
 // X : 414 [] Y : 298 
 void ControlMoteur::techno() {
