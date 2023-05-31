@@ -155,7 +155,7 @@ class ControlMoteur {
         vector<msgRecu> get_value(TPCANMsg toSend);
 
         //==================HOMING MODE==================
-        bool ControlMoteur::init_homingMode(int id);
+        bool init_homingMode(int id);
 
         //==================PARTIE GRAPHIQUE==================
         // [!] A IMPLEMENTER PAR OLIVIER
@@ -170,6 +170,13 @@ class ControlMoteur {
         void control_haptique();
         void findEffectorSpeed(double couple_moteur[3]);
         void updateValeurs();
+
+
+        // sortie [−32768, 32767]
+        static int Int16ToSingnedInt(uint16_t value);
+      
+        void homing(int id);
+        
 
     public:
 
