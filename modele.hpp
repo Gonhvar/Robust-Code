@@ -184,9 +184,9 @@ class Model {
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //defini la valeur a l'originie de OffsetCableI
-        static const int OFFSET_CABLE_I_ORIGINE = 512 + 51; 
-        static const int OFFSET_CABLE_II_ORIGINE  = 345 + 51; 
-        static const int OFFSET_CABLE_III_ORIGINE = 358 + 50; 
+        static const int OFFSET_CABLE_I_ORIGINE = 492+50;//512+51;  
+        static const int OFFSET_CABLE_II_ORIGINE  = 404;//345 + 51; 
+        static const int OFFSET_CABLE_III_ORIGINE = 416; //358 + 50; 
 
         //longueur des cables de leur attache du cable jusqu'au dispositif lorsque le moteur a son increment a 0 en [mm]
         //A regler grace a setOffsetCable()
@@ -195,7 +195,7 @@ class Model {
         static int OFFSET_CABLE_III; 
 
         static constexpr double MASSE = 0.300; // kg
-        static const bool COMPENSE_POIDS = true;
+        static const bool COMPENSE_POIDS = false;
 
         static constexpr double TENSION_MINIMUM = 10; // en N : tension minimu mise dans les cables lors de l'appel a force_moteur()
 

@@ -254,6 +254,12 @@ void InterfaceGraphique::initWigets() {
     addOrangeBorder(discoButton2);
     g_signal_connect(discoButton2, "clicked", G_CALLBACK(callBack_Disco2), this);
 
+    // recordButton
+    recordButton = gtk_button_new_with_label("Enregistrement");
+    gtk_box_pack_start(GTK_BOX(bottom), recordButton, TRUE, TRUE, 0);
+    g_signal_connect(recordButton, "clicked", G_CALLBACK(callBack_Record), this);
+
+
 
     setWigetForSpecificMode();
     desactiveForPowerOff();
@@ -411,6 +417,12 @@ void InterfaceGraphique::disco1() {
 
 void InterfaceGraphique::disco2() {
     controlMoteur->techno();
+}
+
+
+
+void InterfaceGraphique::record() {
+    
 }
 
 
@@ -678,12 +690,20 @@ void InterfaceGraphique::callBack_Disco1(GtkWidget* button, gpointer data) {
     interfaceGraphique->disco1();   
 }
 
-// mettre this en data
+
 void InterfaceGraphique::callBack_Disco2(GtkWidget* button, gpointer data) {
     InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
 
     interfaceGraphique->disco2();   
 }
+
+void InterfaceGraphique::callBack_Record(GtkWidget* button, gpointer data) {
+    InterfaceGraphique* interfaceGraphique = static_cast<InterfaceGraphique*>(data);
+
+    interfaceGraphique->record();   
+}
+
+
 
 void InterfaceGraphique::detruirePositonBox() {
     goToButton = nullptr;

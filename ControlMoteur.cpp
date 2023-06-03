@@ -1334,8 +1334,8 @@ ControlMoteur::ControlMoteur() {
     this->positionX = 0;
     this->positionY = 0;
 
-    this->raideur = 0.2;
-    this->viscosite = 1;
+    this->raideur = 0.1; // [!]
+    this->viscosite = 0.1; //[!]
 
     //Initialisation du PEAK
     initialise_CAN_USB();
@@ -1372,8 +1372,8 @@ void ControlMoteur::runControlMoteur() {
                 //On eteint tous les moteurs et on met à jours toutes les valeurs 
                 shutdown_all();
 
-                setAllAbsolutePosition();
 
+                setAllAbsolutePosition();
                 asservissement = POSITION;
                 break;
 
@@ -1406,6 +1406,8 @@ void ControlMoteur::changeAsservissement(){
     setPowerToOff();
     //On change le mode
     if (asservissement==POSITION) {
+
+        
         asservissement=HAPTIC;
     } else {
         asservissement=POSITION;
@@ -1719,7 +1721,7 @@ void ControlMoteur::mise_en_position0_effecteur(){
 void ControlMoteur::control_haptique(){
     double couple_moteur[3];
     findEffectorSpeed(couple_moteur);
-    std::cout << "Couple 1 : " << couple_moteur[0] <<  " Couple 2 : " << couple_moteur[2] << " Couple 3 : " << couple_moteur[2] << std::endl;
+    //std::cout << "Couple 1 : " << couple_moteur[0] <<  " Couple 2 : " << couple_moteur[2] << " Couple 3 : " << couple_moteur[2] << std::endl;
 
     set_torque(couple_moteur[0], COBID_CAN1_SDO);
     set_torque(couple_moteur[1], COBID_CAN2_SDO);

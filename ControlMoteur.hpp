@@ -18,7 +18,7 @@
 
 using namespace std;
 
-#define POINTS_PAR_MM 10
+#define POINTS_PAR_MM 1
 #define MM_PAR_POINTS 0.5
 
 //Definition des COBID
@@ -52,8 +52,8 @@ using namespace std;
 // #define DEFAULTPOSITIONX 395
 // #define DEFAULTPOSITIONY 200
 
-#define DEFAULTPOSITIONX 396 - 20 
-#define DEFAULTPOSITIONY 65 //+ 15
+#define DEFAULTPOSITIONX 400
+#define DEFAULTPOSITIONY 86 //+ 15
 
 // CONSTANTES MOTEUR
 #define MOTOR_RATED_TORQUE 75.7
@@ -235,6 +235,8 @@ class ControlMoteur {
         
         // [!] A IMPLEMENTER PAR OLIVIER
         void disco();
+
+
 
         void techno();
 

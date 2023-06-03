@@ -133,7 +133,7 @@ class InterfaceGraphique {
         GtkWidget* resetButton;
         GtkWidget* discoButton1;
         GtkWidget* discoButton2;
-
+        GtkWidget* recordButton;
 
 
         // --- METHODES ---
@@ -203,6 +203,8 @@ class InterfaceGraphique {
         void disco1();
 
         void disco2();
+
+        void record();
 
         void detruirePositonBox();
 
@@ -283,6 +285,9 @@ class InterfaceGraphique {
 
         // mettre this en data
         static void callBack_Disco2(GtkWidget* button, gpointer data);
+
+        // mettre this en data  
+        static void callBack_Record(GtkWidget* button, gpointer data);
 
 
 
