@@ -18,9 +18,6 @@
 
 using namespace std;
 
-#define POINTS_PAR_MM 1
-#define MM_PAR_POINTS 0.5
-
 //Definition des COBID
 #define COBID_ALL_CAN_SDO 0x600
 #define COBID_CAN1_SDO 0x601 
@@ -67,6 +64,8 @@ typedef struct tagmsgRecu{
   uint8_t taille;
   //True si le message en question n'est qu'un message de confirmation de reception
   bool isConfirmReception;
+
+  
 }msgRecu; 
 
 // /!\ A instancier une seule fois
@@ -96,6 +95,8 @@ class ControlMoteur {
         double vitesseEffecteur[2];
         double forceCable[3];
 
+        double vitesse = 0.5; //points/mm 
+        
         //En points
         int increment[3];
         //En RPM

@@ -37,13 +37,13 @@ void Rasberry::runRasberry() {
         //printf("Debug : runRasberry\n");
         while (std::getline(serial, line)) {
             //Ici, s'occuper des données reçues
-            //std::cout << line << std::endl;
+            std::cout << line << std::endl;
             splitString(&line);
 
             //Faire la conversion des résultats ici 
             coupleX = potX;
             coupleY = potY;
-            //std::cout <<  "Couple X : " << coupleX << " | CoupleY : " << coupleY << std::endl;
+            // std::cout <<  "Couple X : " << coupleX << " | CoupleY : " << coupleY << std::endl;
         }
     }
     serial.close();

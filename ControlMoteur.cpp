@@ -1478,36 +1478,34 @@ void ControlMoteur::goTo(double positionX,double positionY) {
     wantedPositionY = positionY;
 
     if (asservissement==POSITION) {
-        printf("ControlMoteur::Debug : va vers la position %lf mm %lf mm\n",positionX,positionY);
+        // printf("ControlMoteur::Debug : va vers la position %lf mm %lf mm\n",positionX,positionY);
         enDeplacement = true;
     } else {
         printf("[!] impossible d'aller a une position en mode haptique\n");
     }
 }
 
-
-// [!] A IMPLEMENTER PAR OLIVIER
 void ControlMoteur::setVitesse(double vitesse) {
     printf("ControlMoteur::Debug : vitesse affecte a %lf mm/s\n",vitesse);
-
+    this->vitesse = vitesse;
 }
 
 
 void ControlMoteur::setRaideur(double raideur) {
-    printf("ControlMoteur::Debug : raideur affecte a %lf N/mm\n",raideur);
+    // printf("ControlMoteur::Debug : raideur affecte a %lf N/mm\n",raideur);
     this->raideur = raideur;
 }
 
 
 void ControlMoteur::setViscosite(double viscosite) {
-    printf("ControlMoteur::Debug : viscosite affecte a %lf kg/s\n",viscosite); 
+    // printf("ControlMoteur::Debug : viscosite affecte a %lf kg/s\n",viscosite); 
     this->viscosite = viscosite;
 }
 
 // /!\ A VERIFIER
 void ControlMoteur::reset() {
     //Etalonner
-    printf("ControlMoteur::Debug : reset\n");
+    // printf("ControlMoteur::Debug : reset\n");
     asservissement = NONE;
 
     startHoming(COBID_CAN1_SDO);
@@ -1519,33 +1517,33 @@ void ControlMoteur::reset() {
 
 //
 void ControlMoteur::disco() {
-    printf("ControlMoteur::Debug : disco\n"); 
-    init_asservissementPosition(COBID_CAN1_SDO);
-    init_asservissementPosition(COBID_CAN2_SDO);
-    init_asservissementPosition(COBID_CAN3_SDO);
-    usleep(100000);
+    // printf("ControlMoteur::Debug : disco\n"); 
+    // init_asservissementPosition(COBID_CAN1_SDO);
+    // init_asservissementPosition(COBID_CAN2_SDO);
+    // init_asservissementPosition(COBID_CAN3_SDO);
+    // usleep(100000);
 
-    set_relativePosition(COBID_CAN1_SDO, 19000);
-    set_relativePosition(COBID_CAN2_SDO, 3000);
-    set_relativePosition(COBID_CAN3_SDO, 3000);
+    // set_relativePosition(COBID_CAN1_SDO, 19000);
+    // set_relativePosition(COBID_CAN2_SDO, 3000);
+    // set_relativePosition(COBID_CAN3_SDO, 3000);
 
-    checkAllEndTarget();
-    setAllAbsolutePosition();
-    usleep(10000);
+    // checkAllEndTarget();
+    // setAllAbsolutePosition();
+    // usleep(10000);
 }
 
 // X : 414 [] Y : 298 
 void ControlMoteur::techno() {
     // printf("ControlMoteur::Debug : techno\n"); 
-    init_asservissementPosition(COBID_CAN1_SDO);
-    init_asservissementPosition(COBID_CAN2_SDO);
-    init_asservissementPosition(COBID_CAN3_SDO);
+    // init_asservissementPosition(COBID_CAN1_SDO);
+    // init_asservissementPosition(COBID_CAN2_SDO);
+    // init_asservissementPosition(COBID_CAN3_SDO);
 
-    usleep(100000);
+    // usleep(100000);
 
-    set_absolutePosition(COBID_CAN1_SDO, 0);
-    set_absolutePosition(COBID_CAN2_SDO, 0);
-    set_absolutePosition(COBID_CAN3_SDO, 0);
+    // set_absolutePosition(COBID_CAN1_SDO, 0);
+    // set_absolutePosition(COBID_CAN2_SDO, 0);
+    // set_absolutePosition(COBID_CAN3_SDO, 0);
 }
 
 //==================FONCTIONS AVANCEE==================
@@ -1566,11 +1564,11 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     int val_motor3 = 0;
 
     double read_value = 0;
-    std::cout << "Start Control all position" << std::endl;
+    // std::cout << "Start Control all position" << std::endl;
 
     //On recupére la valeur en points de chaque incrémentation en mm
-    int ptsDeplacementX = abs(wantPosX-positionX)*POINTS_PAR_MM;
-    int ptsDeplacementY = abs(wantPosY-positionY)*POINTS_PAR_MM;
+    int ptsDeplacementX = abs(wantPosX-positionX)*vitesse;
+    int ptsDeplacementY = abs(wantPosY-positionY)*vitesse;
 
     //On trouve quel est le deplacement le plus long selon X ou Y
     if(ptsDeplacementX>ptsDeplacementY){
@@ -1581,7 +1579,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     }
      
     // printf("MAX POINTS : %d points\n", nb_points);
-    printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
+    // printf("pts X : %d et pts Y : %d\n", ptsDeplacementX, ptsDeplacementY);
     
     //Calcul du deplacement à chaque incrémentation [mm]
     // deplacementIncrX = ptsDeplacementX*MM_PAR_POINTS/nb_points;
@@ -1596,7 +1594,7 @@ void ControlMoteur::control_allPosition(double wantPosX, double wantPosY){
     wantPosY = positionY;
 
     //std::cout<< "deplacementX " << deplacementIncrX << " et Y : " << deplacementIncrY << std::endl;
-    printf("En %d points\n", nb_points);
+    // printf("En %d points\n", nb_points);
     
     for(int i=0; i<nb_points; i++){
             updateValeurs();

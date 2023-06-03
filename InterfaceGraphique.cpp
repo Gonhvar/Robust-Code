@@ -559,7 +559,7 @@ void InterfaceGraphique::setupPositionWidget() {
     g_signal_connect(setVitesseButton, "clicked", G_CALLBACK(callBack_SetVitesseButton), this);
 
     vitesseEntry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(vitesseEntry), "mm/s");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(vitesseEntry), "points/mm");
     gtk_box_pack_start(GTK_BOX(setVitesseBox), vitesseEntry, FALSE, FALSE, 0);
 
 
@@ -748,7 +748,7 @@ void InterfaceGraphique::setPowerOn() {
     powerOn=true;
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur sous tension");
     addGreenBorder(changePowerButton);
-    printf("InterfaceGraphique::Debug : power ON\n");
+    // printf("InterfaceGraphique::Debug : power ON\n");
     activeForPowerOn();
 }
 
@@ -756,7 +756,7 @@ void InterfaceGraphique::setPowerOff() {
     powerOn=false;
     gtk_button_set_label(GTK_BUTTON(changePowerButton),"Moteur hors tension");
     addRedBorder(changePowerButton);
-    printf("InterfaceGraphique::Debug : power OFF\n");
+    // printf("InterfaceGraphique::Debug : power OFF\n");
     desactiveForPowerOff();
 }
 
