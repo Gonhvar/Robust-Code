@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iomanip>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
 
 #include "modele.hpp"
 
@@ -19,9 +21,12 @@ InterfaceGraphique::InterfaceGraphique(Rasberry *rasberry, ControlMoteur *contro
     nombreInstance++;
     asservissement = POSITION;
     powerOn=false;
+    recordOn=false;
 
     this->rasberry = rasberry;
     this->controlMoteur = controlMoteur;
+
+
 
     gtk_init(nullptr, nullptr);
 
@@ -255,10 +260,10 @@ void InterfaceGraphique::initWigets() {
     g_signal_connect(discoButton2, "clicked", G_CALLBACK(callBack_Disco2), this);
 
     // recordButton
-    recordButton = gtk_button_new_with_label("Enregistrement");
+    recordButton = gtk_button_new_with_label("Enregistrer");
     gtk_box_pack_start(GTK_BOX(bottom), recordButton, TRUE, TRUE, 0);
     g_signal_connect(recordButton, "clicked", G_CALLBACK(callBack_Record), this);
-
+    addGrayBorder(recordButton);
 
 
     setWigetForSpecificMode();
@@ -313,6 +318,17 @@ void InterfaceGraphique::addOrangeBorder(GtkWidget* widget) {
     g_object_unref(provider);
 }
 
+
+
+void InterfaceGraphique::addGrayBorder(GtkWidget* widget) {
+    // Définit le style CSS pour la bordure
+    const gchar *css = "button { border: 4px solid gray; }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    g_object_unref(provider);
+}
 
 void InterfaceGraphique::changeColorRed(GtkWidget* widget) {
     // Définit le style CSS pour la couleur d'arrière-plan
@@ -422,7 +438,21 @@ void InterfaceGraphique::disco2() {
 
 
 void InterfaceGraphique::record() {
-    
+    if (recordOn == false) {
+        recordOn= true;
+        gtk_button_set_label(GTK_BUTTON(recordButton),"En cours d'enregistrement");
+        addRedBorder(recordButton);
+        fichierEnregistrement = new std::ofstream(std::string("collectedData/")+heureActuelle());
+        nombreEchantillon=0;
+        
+    }
+    else {
+        recordOn = false;
+        gtk_button_set_label(GTK_BUTTON(recordButton),"Enregistrer");
+        addGrayBorder(recordButton);
+        fichierEnregistrement->close();
+        delete fichierEnregistrement;
+    }
 }
 
 
@@ -457,50 +487,85 @@ void InterfaceGraphique::rafraichir() {
 void InterfaceGraphique::updateData(double positionX,double positionY, double forceX,double forceY, double coupleX, double coupleY, double coupleMoteur[3]) {
     int nombreDecimal = 2;
 
+    if (recordOn) {
+        (*fichierEnregistrement) << "numero : " << std::to_string(nombreEchantillon) << " | ";
+    }
+
     // position :
 
     std::ostringstream valeur;
     valeur << std::fixed << std::setprecision(nombreDecimal) << "X : " << positionX << " mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(positionXLabel),valeur.str().c_str());
 
     valeur.str(""); // vide le stream
     valeur << "Y : " << positionY << " mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(positionYLabel),valeur.str().c_str());
 
     // force :
-        valeur.str(""); // vide le stream
+    valeur.str(""); // vide le stream
     valeur << "Fx : " << forceX << " N";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(forceXLabel),valeur.str().c_str());
 
         valeur.str(""); // vide le stream
     valeur << "Fy : " << forceY << " N";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(forceYLabel),valeur.str().c_str());
 
 
     // moment :
         valeur.str(""); // vide le stream
     valeur << "Mx : " << coupleX << " N.mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(momentXLabel),valeur.str().c_str());
 
         valeur.str(""); // vide le stream
     valeur << "My : " << coupleY << " N.mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(momentYLabel),valeur.str().c_str());
 
 
     // couple moteur :
     valeur.str(""); // vide le stream
     valeur << "coupleMoteurI : " << coupleMoteur[0] << " N.mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(coupleMoteurILabel),valeur.str().c_str());
 
     valeur.str(""); // vide le stream
     valeur << "coupleMoteurII : " << coupleMoteur[1] << " N.mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(coupleMoteurIILabel),valeur.str().c_str());
 
     valeur.str(""); // vide le stream
     valeur << "coupleMoteurIII : " << coupleMoteur[2] << " N.mm";
+    if (recordOn) {
+        (*fichierEnregistrement) << valeur.str() << " | ";
+    }
     gtk_label_set_text(GTK_LABEL(coupleMoteurIIILabel),valeur.str().c_str());
 
+    if (recordOn) {
+        (*fichierEnregistrement) << std::endl;
+    }
 
+    nombreEchantillon ++;
 
 
 }
@@ -813,4 +878,20 @@ void InterfaceGraphique::desactiveResetButton() {
 
 void InterfaceGraphique::activeResetButton() {
     gtk_widget_set_sensitive(resetButton, TRUE);
+}
+
+std::string InterfaceGraphique::heureActuelle() {
+    // Obtention de l'instant actuel
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+
+    // Conversion de l'instant actuel en format de temps en utilisant la structure tm
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    std::tm* timeInfo = std::localtime(&currentTime);
+
+    // Conversion de la structure tm en chaînes de caractères
+    char buffer[80];
+    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeInfo);
+
+    // Conversion de la chaîne de caractères en std::string
+    return std::string(buffer);   
 }

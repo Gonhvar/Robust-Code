@@ -1,6 +1,10 @@
 #include <gtk/gtk.h>
 #include <thread>
 #include <memory>
+#include <cstring>
+#include <chrono>
+#include <ctime>
+
 
 class Rasberry;
 class ControlMoteur;
@@ -38,10 +42,18 @@ class InterfaceGraphique {
 
         // --- ATTRIBUTS ---
 
+
+
         enum Asservissement {POSITION,HAPTIQUE};
         Asservissement asservissement;
 
         bool powerOn;
+
+        bool recordOn;
+
+        int nombreEchantillon; // pour le recording
+
+        std::ofstream *fichierEnregistrement;
 
         GtkWidget *window;
         std::thread *gtkThread;
@@ -169,6 +181,8 @@ class InterfaceGraphique {
 
         static void addOrangeBorder(GtkWidget* widget);
 
+        static void addGrayBorder(GtkWidget* widget);
+
         static void changeColorRed(GtkWidget* widget);
 
         static void changeColorGreen(GtkWidget* widget);
@@ -249,6 +263,8 @@ class InterfaceGraphique {
         void desactiveResetButton();
 
         void activeResetButton();
+
+        std::string heureActuelle();
 
 
 
