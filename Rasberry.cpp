@@ -1,4 +1,5 @@
 #include "Rasberry.hpp"
+#include "modele.hpp"
 #include <iostream>
 
 
@@ -37,12 +38,30 @@ void Rasberry::runRasberry() {
         //printf("Debug : runRasberry\n");
         while (std::getline(serial, line)) {
             //Ici, s'occuper des données reçues
-            std::cout << line << std::endl;
+            // std::cout << line << std::endl;
             splitString(&line);
 
             //Faire la conversion des résultats ici 
-            coupleX = potX;
-            coupleY = potY;
+            angleX = (potX-VALMINPOT)/(VALMAXPOT-VALMINPOT);
+            angleY = (potY-VALMINPOT)/(VALMAXPOT-VALMINPOT);
+
+            if(angleX < 50){
+                angleX *= -ANGLEMAX;
+            }
+            else{
+                angleX *= ANGLEMAX;
+            }
+
+            if(angleY < 50){
+                angleY *= -ANGLEMAX;
+            }
+            else{
+                angleY *= ANGLEMAX;
+            }
+
+            coupleX = Model::coupleFromAngle(angleX);
+            coupleY = Model::coupleFromAngle(angleY);
+
             // std::cout <<  "Couple X : " << coupleX << " | CoupleY : " << coupleY << std::endl;
         }
     }

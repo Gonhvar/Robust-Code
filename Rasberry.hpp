@@ -9,6 +9,10 @@
 #include <vector>
 
 
+#define VALMAXPOT 4010
+#define VALMINPOT 2000
+#define ANGLEMAX 45
+
 // /!\ A instancier une seule fois
 class Rasberry {
     private :
@@ -19,6 +23,9 @@ class Rasberry {
         
         int potX = 0;
         int potY = 0;
+
+        double angleX;
+        double angleY;
         
         float coupleX; // N.mm
         float coupleY; // Nmm
