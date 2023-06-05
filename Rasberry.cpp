@@ -42,8 +42,12 @@ void Rasberry::runRasberry() {
             splitString(&line);
 
             //Faire la conversion des résultats ici 
-            angleX = (potX-VALMINPOT)/(VALMAXPOT-VALMINPOT);
-            angleY = (potY-VALMINPOT)/(VALMAXPOT-VALMINPOT);
+            
+            coupleX = potX;
+            coupleY = potY;
+
+            angleX = (potX-VALMINPOTX)/(VALMAXPOTX-VALMINPOTX);
+            angleY = (potY-VALMINPOTY)/(VALMAXPOTY-VALMINPOTY);
 
             if(angleX < 50){
                 angleX *= -ANGLEMAX;

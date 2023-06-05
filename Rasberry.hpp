@@ -9,8 +9,12 @@
 #include <vector>
 
 
-#define VALMAXPOT 4010
-#define VALMINPOT 2000
+#define VALMAXPOTX 2700
+#define VALMINPOTX 1350
+#define VALMAXPOTY 3200
+#define VALMINPOTY 1900
+
+
 #define ANGLEMAX 45
 
 // /!\ A instancier une seule fois
